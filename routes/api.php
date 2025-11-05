@@ -11,6 +11,7 @@ use App\Actions\ScheduleMessage;
 use App\Actions\SendToMultipleGroups;
 use App\Actions\SendToMultipleRecipients;
 use App\Actions\SMS\BulkSendFromFile;
+use App\Actions\SMS\BulkSendPersonalized;
 use App\Actions\UpdateScheduledMessage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -43,4 +44,5 @@ Route::middleware('auth:sanctum')->group(function () {
     // Bulk Import (Phase 3)
     Route::post('/contacts/import', ImportContactsFromFile::class);
     Route::post('/sms/bulk-send', BulkSendFromFile::class);
+    Route::post('/sms/bulk-send-personalized', BulkSendPersonalized::class);
 });
