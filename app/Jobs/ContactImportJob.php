@@ -25,7 +25,8 @@ class ContactImportJob implements ShouldQueue
     public function handle()
     {
         $parser = new FileParser();
-        $rows = $parser->parseFromPath(storage_path("app/{$this->filePath}"));
+        $fullPath = Storage::path($this->filePath);
+        $rows = $parser->parseFromPath($fullPath);
         
         $imported = 0;
         $failed = 0;
