@@ -44,11 +44,19 @@ const canSend = computed(() => {
 
 // Methods
 const sendNow = () => {
-    if (!canSend.value) return;
+    if (!canSend.value || sending.value) return;
     
     sending.value = true;
     errors.value = {};
     success.value = false;
+    
+    // Safety timeout to re-enable button after 10 seconds
+    const timeout = setTimeout(() => {
+        if (sending.value) {
+            sending.value = false;
+            console.warn('Request timed out - re-enabling button');
+        }
+    }, 10000);
     
     router.post('/sms/send', {
         recipients: form.value.recipients,
@@ -56,25 +64,38 @@ const sendNow = () => {
         sender_id: form.value.sender_id,
     }, {
         onSuccess: () => {
+            clearTimeout(timeout);
             success.value = true;
             form.value.recipients = '';
             form.value.message = '';
+            sending.value = false;
         },
         onError: (err) => {
+            clearTimeout(timeout);
             errors.value = err as Record<string, string>;
+            sending.value = false;
         },
         onFinish: () => {
+            clearTimeout(timeout);
             sending.value = false;
         },
     });
 };
 
 const scheduleMessage = () => {
-    if (!canSend.value || !scheduledAt.value) return;
+    if (!canSend.value || !scheduledAt.value || sending.value) return;
     
     sending.value = true;
     errors.value = {};
     success.value = false;
+    
+    // Safety timeout to re-enable button after 10 seconds
+    const timeout = setTimeout(() => {
+        if (sending.value) {
+            sending.value = false;
+            console.warn('Request timed out - re-enabling button');
+        }
+    }, 10000);
     
     router.post('/sms/schedule', {
         recipients: form.value.recipients.split(',').map(r => r.trim()),
@@ -83,16 +104,21 @@ const scheduleMessage = () => {
         scheduled_at: scheduledAt.value,
     }, {
         onSuccess: () => {
+            clearTimeout(timeout);
             success.value = true;
             form.value.recipients = '';
             form.value.message = '';
             scheduledAt.value = '';
             scheduleMode.value = false;
+            sending.value = false;
         },
         onError: (err) => {
+            clearTimeout(timeout);
             errors.value = err as Record<string, string>;
+            sending.value = false;
         },
         onFinish: () => {
+            clearTimeout(timeout);
             sending.value = false;
         },
     });
