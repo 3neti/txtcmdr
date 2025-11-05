@@ -13,6 +13,9 @@ class Contact extends BaseContact
     // - name, email (schemaless via HasAdditionalAttributes trait)
     // - meta (JSON column for schemaless attributes)
 
+    // Ensure schemaless attributes are included when serializing to JSON
+    protected $appends = ['name', 'email'];
+
     // Relationships
     public function groups(): BelongsToMany
     {
