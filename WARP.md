@@ -2,9 +2,17 @@
 
 This file provides guidance to WARP (warp.dev) when working with code in this repository.
 
+## Project Overview
+
+**Text Commander** is an SMS broadcasting system for sending targeted messages to groups of contacts using Laravel Actions architecture and queue-based processing.
+
 ## Tech Stack
 
 - **Backend**: Laravel 12 (PHP 8.2+) with Fortify for authentication
+- **SMS Integration**: lbhurtado/sms (EngageSPARK provider)
+- **Contact Management**: lbhurtado/contact (schemaless attributes via JSON meta column)
+- **Actions**: lorisleiva/laravel-actions for endpoint logic
+- **Phone Validation**: propaganistas/laravel-phone
 - **Frontend**: Vue 3 with Inertia.js (SPA-like experience without building an API)
 - **UI Components**: Reka UI (headless components) with shadcn-vue styling patterns
 - **Styling**: Tailwind CSS v4 with Lucide icons
@@ -91,6 +99,15 @@ php artisan migrate:fresh --seed
 php artisan migrate:rollback
 ```
 
+### SMS Commands
+```bash
+# Test SMS sending
+php artisan sms:test "+639173011987" "Test message"
+
+# Test with custom sender
+php artisan sms:test "+639173011987" "Test" --sender="cashless"
+```
+
 ### Other Useful Commands
 ```bash
 # Clear caches
@@ -98,7 +115,7 @@ php artisan config:clear
 php artisan cache:clear
 php artisan view:clear
 
-# Queue management
+# Queue management (required for SMS sending)
 php artisan queue:work
 php artisan queue:listen --tries=1
 
@@ -127,6 +144,89 @@ This application uses **Inertia.js**, which bridges Laravel and Vue without need
 #### Key Middleware
 - `HandleInertiaRequests` - Shares data to all Inertia views (user, flash messages, etc.)
 - `HandleAppearance` - Manages theme/appearance settings
+
+### Domain Architecture
+
+#### Contact Management with Schemaless Attributes
+The application uses **lbhurtado/contact** package which provides flexible contact storage:
+
+```php
+use LBHurtado\Contact\Models\Contact as BaseContact;
+
+class Contact extends BaseContact
+{
+    // Inherits from package:
+    // - mobile, country, bank_account columns
+    // - HasMobile, HasMeta, HasAdditionalAttributes traits
+    // - fromPhoneNumber() helper method
+    
+    // Schemaless attributes (stored in 'meta' JSON column):
+    // - name, email, address, birth_date, gross_monthly_income
+    
+    public function groups(): BelongsToMany
+    {
+        return $this->belongsToMany(Group::class)->withTimestamps();
+    }
+}
+```
+
+**Usage Examples:**
+```php
+// Creating contacts with schemaless attributes
+$contact = Contact::create([
+    'mobile' => '+639173011987',
+    'name' => 'John Doe',        // Stored in meta JSON
+    'email' => 'john@example.com', // Stored in meta JSON
+]);
+
+// Accessing schemaless attributes
+echo $contact->name;  // "John Doe"
+echo $contact->email; // "john@example.com"
+
+// Adding flexible fields without migrations
+$contact->address = '123 Main St';
+$contact->birth_date = '1990-01-01';
+$contact->gross_monthly_income = 50000;
+$contact->save();
+
+// Phone number helpers from package
+$contact = Contact::fromPhoneNumber('+639173011987');
+echo $contact->e164_mobile; // "+639173011987"
+```
+
+#### SMS Broadcasting Architecture
+
+**Jobs:**
+- `SendSMSJob` - Handles individual SMS sending with queue support
+- `BroadcastToGroupJob` - Dispatches SMS jobs for all contacts in a group
+- `CheckBlacklist` middleware - Prevents SMS to blacklisted numbers
+
+**Actions (Laravel Actions):**
+- `SendToMultipleRecipients` - Send SMS to multiple phone numbers
+- `SendToMultipleGroups` - Broadcast SMS to multiple groups
+- `CreateGroup`, `ListGroups`, `GetGroup`, `DeleteGroup` - Group management
+
+**API Routes (Sanctum protected):**
+```
+POST   /api/send                  → SendToMultipleRecipients
+POST   /api/groups/send           → SendToMultipleGroups
+GET    /api/groups                → ListGroups
+POST   /api/groups                → CreateGroup
+GET    /api/groups/{id}           → GetGroup
+DELETE /api/groups/{id}           → DeleteGroup
+```
+
+**Database Schema:**
+- `contacts` - Base table with mobile, country, bank_account, **meta (JSON)**
+- `groups` - Named groups with user_id ownership
+- `contact_group` - Many-to-many pivot
+- `blacklisted_numbers` - Phone numbers to exclude from broadcasts
+- `scheduled_messages` - Future SMS scheduling (Phase 3)
+
+**Configuration:**
+- `.env` - SMS_DRIVER, SMS_DEFAULT_SENDER_ID, ENGAGESPARK credentials
+- `config/sms.php` - SMS driver configuration
+- `config/engagespark.php` - EngageSPARK provider settings
 
 ### Frontend Structure
 

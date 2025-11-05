@@ -170,23 +170,37 @@ Remember to change back to `database` or `redis` for production.
 
 ### Contacts Table
 
-```bash
-php artisan make:migration create_contacts_table
-```
+**IMPORTANT:** Contacts table is created by `lbhurtado/contact` package migrations.
 
+The package provides two migrations:
+1. `2024_08_02_000000_create_contacts_table.php` - Base table
+2. `2025_08_01_123520_add_meta_to_contacts_table.php` - Schemaless attributes support
+
+**Actual Table Structure:**
 ```php
 Schema::create('contacts', function (Blueprint $table) {
     $table->id();
-    $table->string('name');
-    $table->string('mobile')->unique();
-    $table->string('email')->nullable();
-    $table->json('extra')->nullable(); // For custom fields
+    $table->string('mobile');        // Phone number
+    $table->string('country');       // Country code (default: PH)
+    $table->string('bank_account')->nullable(); // For payment features
     $table->timestamps();
-    
-    $table->index('mobile');
-    $table->index('email');
+});
+
+// Meta column added by second migration
+Schema::table('contacts', function (Blueprint $table) {
+    $table->schemalessAttributes('meta'); // JSON column for name, email, etc.
 });
 ```
+
+**No additional migration needed!** The package handles everything.
+
+**What gets stored in `meta`:**
+- `name`
+- `email`
+- `address`
+- `birth_date`
+- `gross_monthly_income`
+- Any other custom fields you add
 
 ### Groups Table
 
@@ -291,6 +305,8 @@ php artisan migrate
 
 ### Contact Model
 
+**IMPORTANT:** Contact model extends from `lbhurtado/contact` package and uses **schemaless attributes** for flexible fields.
+
 ```bash
 php artisan make:model Contact
 ```
@@ -300,22 +316,16 @@ php artisan make:model Contact
 ```php
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use LBHurtado\Contact\Models\Contact as BaseContact;
 use Propaganistas\LaravelPhone\PhoneNumber;
 
-class Contact extends Model
+class Contact extends BaseContact
 {
-    protected $fillable = [
-        'name',
-        'mobile',
-        'email',
-        'extra',
-    ];
-
-    protected $casts = [
-        'extra' => 'array',
-    ];
+    // Package already provides:
+    // - mobile, country, bank_account (fillable columns)
+    // - name, email (schemaless via HasAdditionalAttributes trait)
+    // - meta (JSON column for schemaless attributes)
 
     // Relationships
     public function groups(): BelongsToMany
@@ -324,22 +334,47 @@ class Contact extends Model
             ->withTimestamps();
     }
 
-    // Helper: Create from PhoneNumber object
-    public static function fromPhoneNumber(PhoneNumber $phone): self
-    {
-        return self::firstOrCreate(
-            ['mobile' => $phone->formatE164()],
-            ['name' => '']
-        );
-    }
-
     // Accessor: Get E.164 formatted mobile
     public function getE164MobileAttribute(): string
     {
         return (new PhoneNumber($this->mobile, 'PH'))->formatE164();
     }
+
+    // Note: fromPhoneNumber() is already provided by HasMobile trait
+    // from the lbhurtado/contact package
 }
 ```
+
+**Schemaless Attributes Usage:**
+```php
+// Create contact with name and email (stored in meta JSON)
+$contact = Contact::create([
+    'mobile' => '09173011987',
+    'name' => 'Juan Dela Cruz',      // Schemaless
+    'email' => 'juan@example.com',   // Schemaless
+]);
+
+// Access like normal properties
+echo $contact->name;   // "Juan Dela Cruz"
+echo $contact->email;  // "juan@example.com"
+
+// Add any additional fields without migrations!
+$contact->address = 'Quezon City';
+$contact->birth_date = '1990-01-01';
+$contact->save();
+```
+
+**Available Schemaless Fields (built-in):**
+- `name`
+- `email`
+- `address`
+- `birth_date`
+- `gross_monthly_income`
+
+**Database Structure:**
+Only these columns exist in the table:
+- `id`, `mobile`, `country`, `bank_account`, `created_at`, `updated_at`
+- `meta` (JSON) - stores all schemaless attributes
 
 ### Group Model
 
