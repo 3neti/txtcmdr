@@ -50,14 +50,11 @@ const sendNow = () => {
     errors.value = {};
     success.value = false;
     
-    router.post('/api/send', {
+    router.post('/sms/send', {
         recipients: form.value.recipients,
         message: form.value.message,
         sender_id: form.value.sender_id,
     }, {
-        headers: {
-            'Accept': 'application/json',
-        },
         onSuccess: () => {
             success.value = true;
             form.value.recipients = '';
@@ -79,15 +76,12 @@ const scheduleMessage = () => {
     errors.value = {};
     success.value = false;
     
-    router.post('/api/send/schedule', {
+    router.post('/sms/schedule', {
         recipients: form.value.recipients.split(',').map(r => r.trim()),
         message: form.value.message,
         sender_id: form.value.sender_id,
         scheduled_at: scheduledAt.value,
     }, {
-        headers: {
-            'Accept': 'application/json',
-        },
         onSuccess: () => {
             success.value = true;
             form.value.recipients = '';
