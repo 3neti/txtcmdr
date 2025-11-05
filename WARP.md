@@ -93,12 +93,17 @@ npm run build:ssr
 # Run migrations
 php artisan migrate
 
-# Fresh migration with seeding
+# Fresh migration with seeding (creates admin user)
 php artisan migrate:fresh --seed
 
 # Rollback
 php artisan migrate:rollback
 ```
+
+**Seeded Admin User:**
+- Name: Lester Hurtado
+- Email: admin@disburse.cash
+- Password: password
 
 ### SMS Commands
 ```bash
