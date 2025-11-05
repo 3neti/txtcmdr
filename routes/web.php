@@ -155,6 +155,40 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return back()->with('success', 'Contacts import started! Processing in background.');
     })->name('contacts.import');
 
+    Route::put('contacts/{id}', function (Request $request, int $id) {
+        $contact = \App\Models\Contact::findOrFail($id);
+
+        $request->validate([
+            'mobile' => 'required|string',
+            'name' => 'nullable|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'group_ids' => 'nullable|array',
+            'group_ids.*' => 'exists:groups,id',
+        ]);
+
+        // Update mobile if changed (requires validation)
+        if ($request->input('mobile') !== $contact->mobile) {
+            try {
+                $phone = new \Propaganistas\LaravelPhone\PhoneNumber($request->input('mobile'), 'PH');
+                $contact->mobile = $phone->formatE164();
+            } catch (\Exception $e) {
+                return back()->withErrors(['mobile' => 'Invalid phone number format']);
+            }
+        }
+
+        // Update schemaless attributes (stored in meta JSON)
+        $contact->name = $request->input('name');
+        $contact->email = $request->input('email');
+        $contact->save();
+
+        // Update group associations
+        if ($request->has('group_ids')) {
+            $contact->groups()->sync($request->input('group_ids'));
+        }
+
+        return back()->with('success', 'Contact updated successfully!');
+    })->name('contacts.update');
+
     Route::delete('contacts/{id}', function (int $id) {
         $contact = \App\Models\Contact::findOrFail($id);
         $contact->delete();

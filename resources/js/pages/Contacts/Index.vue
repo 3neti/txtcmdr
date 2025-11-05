@@ -30,7 +30,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
-import { Plus, Trash2, Upload, User, Users } from 'lucide-vue-next';
+import { Pencil, Plus, Trash2, Upload, User, Users } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 
 interface Group {
@@ -58,9 +58,11 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 const showCreateDialog = ref(false);
+const showEditDialog = ref(false);
 const showImportDialog = ref(false);
 const showDeleteDialog = ref(false);
 const contactToDelete = ref<Contact | null>(null);
+const contactToEdit = ref<Contact | null>(null);
 const searchQuery = ref('');
 
 const form = useForm({
@@ -93,6 +95,28 @@ const createContact = () => {
         onSuccess: () => {
             form.reset();
             showCreateDialog.value = false;
+        },
+    });
+};
+
+const openEditDialog = (contact: Contact) => {
+    contactToEdit.value = contact;
+    form.mobile = formatPhone(contact.mobile);
+    form.name = contact.name || '';
+    form.email = contact.email || '';
+    form.group_ids = contact.groups.map(g => g.id);
+    showEditDialog.value = true;
+};
+
+const updateContact = () => {
+    if (!contactToEdit.value) return;
+    
+    form.put(`/contacts/${contactToEdit.value.id}`, {
+        preserveScroll: true,
+        onSuccess: () => {
+            form.reset();
+            showEditDialog.value = false;
+            contactToEdit.value = null;
         },
     });
 };
@@ -186,7 +210,8 @@ const formatDate = (date: string) => {
                 <div
                     v-for="contact in filteredContacts"
                     :key="contact.id"
-                    class="group flex items-center justify-between rounded-lg border bg-card p-4 shadow-sm hover:bg-accent"
+                    class="group flex cursor-pointer items-center justify-between rounded-lg border bg-card p-4 shadow-sm hover:bg-accent"
+                    @dblclick="openEditDialog(contact)"
                 >
                     <div class="flex items-center gap-4">
                         <div
@@ -225,14 +250,24 @@ const formatDate = (date: string) => {
                                 </div>
                             </div>
                         </div>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            class="opacity-0 transition-opacity group-hover:opacity-100"
-                            @click="confirmDelete(contact)"
-                        >
-                            <Trash2 class="h-4 w-4 text-destructive" />
-                        </Button>
+                        <div class="flex gap-1">
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                class="opacity-0 transition-opacity group-hover:opacity-100"
+                                @click.stop="openEditDialog(contact)"
+                            >
+                                <Pencil class="h-4 w-4" />
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                class="opacity-0 transition-opacity group-hover:opacity-100"
+                                @click.stop="confirmDelete(contact)"
+                            >
+                                <Trash2 class="h-4 w-4 text-destructive" />
+                            </Button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -327,6 +362,68 @@ const formatDate = (date: string) => {
                         </Button>
                         <Button type="submit" :disabled="form.processing">
                             {{ form.processing ? 'Adding...' : 'Add Contact' }}
+                        </Button>
+                    </DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
+
+        <!-- Edit Contact Dialog -->
+        <Dialog v-model:open="showEditDialog">
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Edit Contact</DialogTitle>
+                    <DialogDescription>
+                        Update contact information
+                    </DialogDescription>
+                </DialogHeader>
+
+                <form @submit.prevent="updateContact" class="space-y-4">
+                    <div>
+                        <Label for="edit-mobile">Mobile Number</Label>
+                        <Input
+                            id="edit-mobile"
+                            v-model="form.mobile"
+                            placeholder="09171234567 or +639171234567"
+                            required
+                        />
+                        <p
+                            v-if="form.errors.mobile"
+                            class="mt-1 text-sm text-destructive"
+                        >
+                            {{ form.errors.mobile }}
+                        </p>
+                    </div>
+
+                    <div>
+                        <Label for="edit-name">Name (Optional)</Label>
+                        <Input
+                            id="edit-name"
+                            v-model="form.name"
+                            placeholder="John Doe"
+                        />
+                    </div>
+
+                    <div>
+                        <Label for="edit-email">Email (Optional)</Label>
+                        <Input
+                            id="edit-email"
+                            v-model="form.email"
+                            type="email"
+                            placeholder="john@example.com"
+                        />
+                    </div>
+
+                    <DialogFooter>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            @click="showEditDialog = false"
+                        >
+                            Cancel
+                        </Button>
+                        <Button type="submit" :disabled="form.processing">
+                            {{ form.processing ? 'Updating...' : 'Update Contact' }}
                         </Button>
                     </DialogFooter>
                 </form>
