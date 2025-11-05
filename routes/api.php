@@ -1,11 +1,17 @@
 <?php
 
-use App\Actions\SendToMultipleRecipients;
-use App\Actions\SendToMultipleGroups;
+use App\Actions\CancelScheduledMessage;
+use App\Actions\Contacts\ImportContactsFromFile;
 use App\Actions\Groups\CreateGroup;
-use App\Actions\Groups\ListGroups;
-use App\Actions\Groups\GetGroup;
 use App\Actions\Groups\DeleteGroup;
+use App\Actions\Groups\GetGroup;
+use App\Actions\Groups\ListGroups;
+use App\Actions\ListScheduledMessages;
+use App\Actions\ScheduleMessage;
+use App\Actions\SendToMultipleGroups;
+use App\Actions\SendToMultipleRecipients;
+use App\Actions\SMS\BulkSendFromFile;
+use App\Actions\UpdateScheduledMessage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -28,14 +34,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/groups/{id}', GetGroup::class);
     Route::delete('/groups/{id}', DeleteGroup::class);
     
-    // Contact Management (to be implemented)
-    // Route::post('/groups/{id}/contacts', AddContactToGroup::class);
-    
-    // Blacklist Management (to be implemented)
-    // Route::post('/blacklist', AddToBlacklist::class);
-    // Route::delete('/blacklist/{id}', RemoveFromBlacklist::class);
-    
     // Scheduled Messages (Phase 3)
-    // Route::post('/send/schedule', ScheduleMessage::class);
-    // Route::get('/scheduled-messages', ListScheduledMessages::class);
+    Route::post('/send/schedule', ScheduleMessage::class);
+    Route::get('/scheduled-messages', ListScheduledMessages::class);
+    Route::put('/scheduled-messages/{id}', UpdateScheduledMessage::class);
+    Route::post('/scheduled-messages/{id}/cancel', CancelScheduledMessage::class);
+    
+    // Bulk Import (Phase 3)
+    Route::post('/contacts/import', ImportContactsFromFile::class);
+    Route::post('/sms/bulk-send', BulkSendFromFile::class);
 });

@@ -13,17 +13,33 @@ return new class extends Migration
     {
         Schema::create('scheduled_messages', function (Blueprint $table) {
             $table->id();
+            
+            // Message content
             $table->text('message');
-            $table->json('recipients')->nullable(); // Array of mobile numbers
-            $table->json('group_ids')->nullable(); // Array of group IDs
-            $table->string('sender_id');
+            $table->string('sender_id')->default('TXTCMDR');
+            
+            // Recipients (polymorphic)
+            $table->string('recipient_type'); // 'numbers', 'group', 'mixed'
+            $table->json('recipient_data');   // Store numbers, group IDs, or both
+            
+            // Scheduling
             $table->timestamp('scheduled_at');
+            $table->timestamp('sent_at')->nullable();
+            
+            // Status tracking
             $table->enum('status', ['pending', 'processing', 'sent', 'failed', 'cancelled'])
-                  ->default('pending');
+                ->default('pending');
+            
+            // Metadata
+            $table->integer('total_recipients')->default(0);
+            $table->integer('sent_count')->default(0);
+            $table->integer('failed_count')->default(0);
+            $table->json('errors')->nullable();
+            
             $table->timestamps();
             
-            $table->index('scheduled_at');
-            $table->index('status');
+            // Indexes
+            $table->index(['status', 'scheduled_at']);
         });
     }
 

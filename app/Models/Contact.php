@@ -28,4 +28,41 @@ class Contact extends BaseContact
 
     // Note: fromPhoneNumber() is already provided by HasMobile trait
     // from the lbhurtado/contact package
+
+    /**
+     * Create a contact from array (for bulk import)
+     * Uses firstOrCreate to avoid duplicates
+     */
+    public static function createFromArray(array $data): ?self
+    {
+        if (empty($data['mobile'])) {
+            return null;
+        }
+
+        // Normalize phone number
+        try {
+            $phone = new PhoneNumber($data['mobile'], 'PH');
+            $e164Mobile = $phone->formatE164();
+        } catch (\Exception $e) {
+            return null;
+        }
+
+        // Use firstOrCreate to avoid duplicates
+        $contact = self::firstOrCreate(
+            ['mobile' => $e164Mobile],
+            ['country' => 'PH']
+        );
+
+        // Update schemaless attributes if provided
+        if (isset($data['name'])) {
+            $contact->name = $data['name'];
+        }
+        if (isset($data['email'])) {
+            $contact->email = $data['email'];
+        }
+
+        $contact->save();
+
+        return $contact;
+    }
 }
