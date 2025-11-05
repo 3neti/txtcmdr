@@ -117,6 +117,40 @@ php artisan sms:test "+639173011987" "Test" --sender="cashless"
 php artisan messages:process-scheduled
 ```
 
+### Task Scheduler
+
+**Development:**
+
+During development, the scheduler doesn't run automatically. You have these options:
+
+```bash
+# Option 1: Run a specific scheduled command manually
+php artisan messages:process-scheduled
+
+# Option 2: Run all scheduled tasks once
+php artisan schedule:run
+
+# Option 3: Run scheduler in watch mode (Laravel 11+)
+php artisan schedule:work
+```
+
+**Production:**
+
+Laravel's Task Scheduler requires a single cron entry on your server:
+
+```bash
+# Edit crontab
+crontab -e
+
+# Add this line (replace with your actual project path)
+* * * * * cd /Users/rli/PhpstormProjects/txtcmdr && php artisan schedule:run >> /dev/null 2>&1
+```
+
+This single cron job runs every minute. Laravel's scheduler (defined in `routes/console.php`) then decides which commands to execute based on their schedule.
+
+**Scheduled Tasks:**
+- `messages:process-scheduled` - Runs every minute to process scheduled messages
+
 ### Other Useful Commands
 ```bash
 # Clear caches
