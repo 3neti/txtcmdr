@@ -14,7 +14,7 @@ import {
 import { dashboard, sendSMS } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { BookOpen, Calendar, Folder, LayoutGrid, MessageSquare, Send, Users, UsersRound } from 'lucide-vue-next';
+import { BookOpen, Calendar, Folder, LayoutGrid, MessageSquare, Send, Upload, Users, UsersRound } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 
 const mainNavItems: NavItem[] = [
@@ -27,6 +27,11 @@ const mainNavItems: NavItem[] = [
         title: 'Send SMS',
         href: sendSMS(),
         icon: Send,
+    },
+    {
+        title: 'Bulk Operations',
+        href: '/bulk-operations',
+        icon: Upload,
     },
     {
         title: 'Groups',

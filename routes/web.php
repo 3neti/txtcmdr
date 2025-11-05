@@ -77,6 +77,14 @@ Route::get('scheduled-messages', function (Request $request) {
     ]);
 })->middleware(['auth', 'verified'])->name('scheduled.index');
 
+Route::get('bulk-operations', function () {
+    $groups = \App\Models\Group::where('user_id', auth()->id())->get();
+
+    return Inertia::render('BulkOperations/Index', [
+        'groups' => $groups,
+    ]);
+})->middleware(['auth', 'verified'])->name('bulk.index');
+
 // SMS & Group Actions (for authenticated web interface)
 Route::middleware(['auth', 'verified'])->group(function () {
     // SMS Actions
@@ -203,6 +211,41 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         return back()->with('success', 'Scheduled message cancelled successfully!');
     })->name('scheduled.cancel');
+
+    // Bulk Operations
+    Route::post('bulk/send', function (Request $request) {
+        $request->validate([
+            'file' => 'required|file|mimes:csv,xlsx,xls',
+            'message' => 'required|string|max:1600',
+            'sender_id' => 'required|string',
+            'mobile_column' => 'nullable|string',
+        ]);
+
+        $result = \App\Actions\SMS\BulkSendFromFile::run(
+            $request->file('file'),
+            $request->input('message'),
+            $request->input('sender_id'),
+            $request->input('mobile_column', 'mobile')
+        );
+
+        return back()->with('success', "Bulk send started! {$result['queued']} messages queued.");
+    })->name('bulk.send');
+
+    Route::post('bulk/send-personalized', function (Request $request) {
+        $request->validate([
+            'file' => 'required|file|mimes:csv,xlsx,xls',
+            'sender_id' => 'required|string',
+            'import_contacts' => 'boolean',
+        ]);
+
+        $result = \App\Actions\SMS\BulkSendPersonalized::run(
+            $request->file('file'),
+            $request->input('sender_id'),
+            $request->boolean('import_contacts')
+        );
+
+        return back()->with('success', "Personalized bulk send started! {$result['queued']} messages queued.");
+    })->name('bulk.send-personalized');
 });
 
 require __DIR__.'/settings.php';
