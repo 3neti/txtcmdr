@@ -77,6 +77,36 @@ Route::get('scheduled-messages', function (Request $request) {
     ]);
 })->middleware(['auth', 'verified'])->name('scheduled.index');
 
+Route::get('message-history', function (Request $request) {
+    $status = $request->query('status', 'all');
+    $search = $request->query('search', '');
+
+    $query = \App\Models\MessageLog::query()
+        ->where('user_id', auth()->id())
+        ->orderBy('created_at', 'desc');
+
+    // Filter by status
+    if ($status !== 'all') {
+        $query->where('status', $status);
+    }
+
+    // Search by recipient or message
+    if ($search) {
+        $query->where(function ($q) use ($search) {
+            $q->where('recipient', 'like', "%{$search}%")
+                ->orWhere('message', 'like', "%{$search}%");
+        });
+    }
+
+    $logs = $query->paginate(20);
+
+    return Inertia::render('MessageHistory/Index', [
+        'logs' => $logs,
+        'currentStatus' => $status,
+        'searchQuery' => $search,
+    ]);
+})->middleware(['auth', 'verified'])->name('message-history.index');
+
 Route::get('bulk-operations', function () {
     $groups = \App\Models\Group::where('user_id', auth()->id())->get();
 
