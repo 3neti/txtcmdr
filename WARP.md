@@ -361,24 +361,110 @@ mobile,name,message
 - `FileParser` - Parses CSV and XLSX files with header detection
 - `MessagePersonalizer` - Handles variable substitution in message templates
 
-### Frontend Structure
+### Frontend Structure (Phase 4)
+
+#### Application Pages
+
+**Dashboard** (`pages/Dashboard.vue`):
+- Real-time stats cards: Total groups, contacts, scheduled messages, sent messages
+- Quick action buttons: Send SMS, Manage Groups, Manage Contacts
+- Recent activity feed: Latest groups and upcoming scheduled messages
+- Powered by Inertia with live data from backend
+
+**Send SMS** (`pages/SendSMS.vue`):
+- Recipient input (phone numbers)
+- Message textarea with character counter (1600 chars max, 160 chars/SMS)
+- Sender ID selector (cashless, Quezon City, TXTCMDR)
+- Schedule for later option with datetime picker
+- Send now vs Schedule for later
+- Success/error alerts with form validation
+- Button state management with timeout protection
+
+**Bulk Operations** (`pages/BulkOperations/Index.vue`):
+- **Import Contacts**: Upload CSV/XLSX with mobile, name, email. Optional group assignment.
+- **Bulk Send from File**: Upload file with phone numbers, send same message to all
+- **Personalized Bulk Send**: Upload CSV with 2-col or 3-col format, variable substitution ({{name}}, {{mobile}})
+- File validation, format instructions, loading states
+- All operations processed via queue in background
+
+**Groups Management** (`pages/Groups/Index.vue`, `pages/Groups/Show.vue`):
+- List all groups with contact counts
+- Create/edit/delete groups with dialog forms
+- View group details with member list
+- Click group card to view members
+- Send SMS to entire group
+
+**Contacts Management** (`pages/Contacts/Index.vue`):
+- List all contacts with search/filter
+- Create/edit/delete contacts
+- **Edit contacts**: Double-click row or click edit icon
+- Mobile field with lock/unlock toggle (focus on name by default)
+- Import contacts from CSV (also available in Bulk Operations)
+- Assign contacts to groups
+- Display contact groups as badges
+
+**Scheduled Messages** (`pages/ScheduledMessages/Index.vue`):
+- List scheduled messages with pagination
+- Filter by status: All, Pending, Processing, Sent, Cancelled
+- Cancel pending/processing messages
+- View message details: sender, recipients, scheduled time
+- Status badges with color coding
 
 #### Directory Layout
 ```
 resources/js/
-├── actions/           # Wayfinder route helpers (organized by namespace)
-├── components/        # Reusable Vue components
-│   └── ui/           # Shadcn-vue UI components
-├── composables/       # Vue composition API utilities
-├── layouts/           # Page layouts (app, auth, settings)
-├── lib/              # Utility functions
-├── pages/            # Inertia page components (route-mapped)
-│   ├── auth/         # Authentication pages
-│   └── settings/     # User settings pages
-├── routes/           # [GENERATED] Wayfinder route definitions
-├── types/            # TypeScript type definitions
-├── wayfinder/        # Wayfinder core utilities
-└── app.ts            # Main application entry point
+├── actions/              # Wayfinder route helpers (organized by namespace)
+├── components/           # Reusable Vue components
+│   └── ui/              # Shadcn-vue UI components
+│       ├── alert/       # Alert components
+│       ├── alert-dialog/# Confirmation dialogs
+│       ├── button/      # Button variants
+│       ├── card/        # Card components
+│       ├── dialog/      # Modal dialogs
+│       ├── input/       # Form inputs
+│       ├── label/       # Form labels
+│       ├── select/      # Dropdown selects
+│       └── textarea/    # Multi-line text inputs
+├── composables/          # Vue composition API utilities
+├── layouts/              # Page layouts (app, auth, settings)
+├── lib/                  # Utility functions
+├── pages/                # Inertia page components (route-mapped)
+│   ├── auth/            # Authentication pages
+│   ├── settings/        # User settings pages
+│   ├── BulkOperations/  # Bulk import & send operations
+│   ├── Contacts/        # Contact management
+│   ├── Groups/          # Group management
+│   └── ScheduledMessages/ # Scheduled message management
+├── routes/               # [GENERATED] Wayfinder route definitions
+├── types/                # TypeScript type definitions
+├── wayfinder/            # Wayfinder core utilities
+└── app.ts                # Main application entry point
+```
+
+#### Web Routes (Session-authenticated)
+
+```php
+# Pages
+GET  /dashboard              → Dashboard with stats
+GET  /send-sms               → Send SMS page
+GET  /bulk-operations        → Bulk operations page
+GET  /groups                 → List groups
+GET  /groups/{id}            → View group details
+GET  /contacts               → List contacts
+GET  /scheduled-messages     → List scheduled messages
+
+# Actions
+POST   /sms/send             → Send SMS immediately
+POST   /sms/schedule         → Schedule SMS for later
+POST   /groups               → Create group
+DELETE /groups/{id}          → Delete group
+POST   /contacts             → Create contact
+PUT    /contacts/{id}        → Update contact
+DELETE /contacts/{id}        → Delete contact
+POST   /contacts/import      → Import contacts from CSV
+POST   /bulk/send            → Bulk send from file
+POST   /bulk/send-personalized → Personalized bulk send
+POST   /scheduled-messages/{id}/cancel → Cancel scheduled message
 ```
 
 #### Wayfinder Integration
