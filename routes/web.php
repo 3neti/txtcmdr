@@ -14,4 +14,8 @@ Route::get('dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+Route::get('send-sms', function () {
+    return Inertia::render('SendSMS');
+})->middleware(['auth', 'verified'])->name('sendSMS');
+
 require __DIR__.'/settings.php';
