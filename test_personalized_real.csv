@@ -1,0 +1,3 @@
+mobile,name,message
+09173011987,Juan,"Hi {{name}}! Your account {{mobile}} has been activated. Welcome to Text Commander!"
+09178251991,Maria,"Hello {{name}}! Thank you for joining us. Contact {{mobile}} for support."

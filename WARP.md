@@ -17,6 +17,7 @@ This file provides guidance to WARP (warp.dev) when working with code in this re
 - **UI Components**: Reka UI (headless components) with shadcn-vue styling patterns
 - **Styling**: Tailwind CSS v4 with Lucide icons
 - **Build Tool**: Vite with TypeScript
+- **File Processing**: league/csv and phpoffice/phpspreadsheet for CSV/XLSX parsing
 - **Testing**: Pest PHP (Laravel's testing framework)
 - **Code Quality**: Laravel Pint (PHP), ESLint + Prettier (JS/TS)
 - **Database**: SQLite (default)
@@ -106,6 +107,9 @@ php artisan sms:test "+639173011987" "Test message"
 
 # Test with custom sender
 php artisan sms:test "+639173011987" "Test" --sender="cashless"
+
+# Process scheduled messages (runs automatically via scheduler every minute)
+php artisan messages:process-scheduled
 ```
 
 ### Other Useful Commands
@@ -199,21 +203,42 @@ echo $contact->e164_mobile; // "+639173011987"
 **Jobs:**
 - `SendSMSJob` - Handles individual SMS sending with queue support
 - `BroadcastToGroupJob` - Dispatches SMS jobs for all contacts in a group
+- `ProcessScheduledMessage` - Processes scheduled messages when due
+- `ContactImportJob` - Async contact import from CSV/XLSX
 - `CheckBlacklist` middleware - Prevents SMS to blacklisted numbers
 
 **Actions (Laravel Actions):**
 - `SendToMultipleRecipients` - Send SMS to multiple phone numbers
 - `SendToMultipleGroups` - Broadcast SMS to multiple groups
 - `CreateGroup`, `ListGroups`, `GetGroup`, `DeleteGroup` - Group management
+- `ScheduleMessage` - Schedule SMS for future delivery
+- `UpdateScheduledMessage`, `CancelScheduledMessage`, `ListScheduledMessages` - Scheduled message management
+- `BulkSendFromFile` - Send SMS to all numbers in CSV/XLSX
+- `BulkSendPersonalized` - Personalized bulk SMS with variable substitution
+- `ImportContactsFromFile` - Import contacts from CSV/XLSX
 
 **API Routes (Sanctum protected):**
 ```
-POST   /api/send                  → SendToMultipleRecipients
-POST   /api/groups/send           → SendToMultipleGroups
-GET    /api/groups                → ListGroups
-POST   /api/groups                → CreateGroup
-GET    /api/groups/{id}           → GetGroup
-DELETE /api/groups/{id}           → DeleteGroup
+# Immediate Sending
+POST   /api/send                           → SendToMultipleRecipients
+POST   /api/groups/send                    → SendToMultipleGroups
+
+# Group Management
+GET    /api/groups                         → ListGroups
+POST   /api/groups                         → CreateGroup
+GET    /api/groups/{id}                    → GetGroup
+DELETE /api/groups/{id}                    → DeleteGroup
+
+# Scheduled Messages (Phase 3)
+POST   /api/send/schedule                  → ScheduleMessage
+GET    /api/scheduled-messages             → ListScheduledMessages
+PUT    /api/scheduled-messages/{id}        → UpdateScheduledMessage
+POST   /api/scheduled-messages/{id}/cancel → CancelScheduledMessage
+
+# Bulk Operations (Phase 3)
+POST   /api/contacts/import                → ImportContactsFromFile
+POST   /api/sms/bulk-send                  → BulkSendFromFile
+POST   /api/sms/bulk-send-personalized     → BulkSendPersonalized
 ```
 
 **Database Schema:**
@@ -221,12 +246,81 @@ DELETE /api/groups/{id}           → DeleteGroup
 - `groups` - Named groups with user_id ownership
 - `contact_group` - Many-to-many pivot
 - `blacklisted_numbers` - Phone numbers to exclude from broadcasts
-- `scheduled_messages` - Future SMS scheduling (Phase 3)
+- `scheduled_messages` - SMS scheduling with recipient_type, recipient_data, status tracking
 
 **Configuration:**
 - `.env` - SMS_DRIVER, SMS_DEFAULT_SENDER_ID, ENGAGESPARK credentials
 - `config/sms.php` - SMS driver configuration
 - `config/engagespark.php` - EngageSPARK provider settings
+
+#### Scheduled Messaging (Phase 3)
+
+**Features:**
+- Schedule SMS messages for future delivery
+- Support for individuals, contacts, or groups
+- Edit or cancel scheduled messages before sending
+- Automatic processing via Laravel scheduler (runs every minute)
+- Status tracking: pending → processing → sent
+
+**Usage:**
+```php
+// Schedule a message
+ScheduleMessage::run(
+    recipients: ['09173011987', '09178251991'],
+    message: 'Reminder: Your appointment is tomorrow',
+    scheduledAt: '2025-11-06 10:00:00',
+    senderId: 'Quezon City'
+);
+```
+
+**Scheduler Configuration:**
+```php
+// routes/console.php
+Schedule::command('messages:process-scheduled')->everyMinute();
+```
+
+#### Bulk Import & Personalized Messaging (Phase 3)
+
+**Bulk Contact Import:**
+- Import contacts from CSV/XLSX files
+- Optional group assignment
+- Async processing via queue
+- Required columns: `mobile` (or `phone`)
+- Optional columns: `name`, `email`
+
+**Bulk SMS from File:**
+- Send SMS to all valid numbers in a file
+- Blacklist filtering applied
+- Column specification: `mobile_column` parameter
+
+**Personalized Bulk Messaging:**
+Supports variable substitution with two CSV formats:
+
+**Format 1: 2 columns (mobile, message)**
+```csv
+mobile,message
+09173011987,Your OTP code is 123456
+09178251991,Your payment has been received
+```
+
+**Format 2: 3 columns (mobile, name, message) with variables**
+```csv
+mobile,name,message
+09173011987,Juan,"Hi {{name}}! Your account {{mobile}} is activated."
+09178251991,Maria,"Hello {{name}}, contact {{mobile}} for support."
+```
+
+**Supported Variables:**
+- `{{mobile}}` - Recipient's E.164 phone number
+- `{{name}}` - Recipient's name
+
+**Example Result:**
+- Input: `"Hi {{name}}! Your account {{mobile}} is activated."`
+- Output: `"Hi Juan! Your account +639173011987 is activated."`
+
+**Services:**
+- `FileParser` - Parses CSV and XLSX files with header detection
+- `MessagePersonalizer` - Handles variable substitution in message templates
 
 ### Frontend Structure
 
