@@ -177,8 +177,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         }
 
         // Update schemaless attributes (stored in meta JSON)
-        $contact->name = $request->input('name');
-        $contact->email = $request->input('email');
+        // Convert empty strings to null for proper storage
+        $contact->name = $request->input('name') ?: null;
+        $contact->email = $request->input('email') ?: null;
         $contact->save();
 
         // Update group associations

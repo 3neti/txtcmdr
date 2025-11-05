@@ -30,7 +30,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
-import { Pencil, Plus, Trash2, Upload, User, Users } from 'lucide-vue-next';
+import { Lock, Pencil, Plus, Trash2, Unlock, Upload, User, Users } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 
 interface Group {
@@ -64,6 +64,7 @@ const showDeleteDialog = ref(false);
 const contactToDelete = ref<Contact | null>(null);
 const contactToEdit = ref<Contact | null>(null);
 const searchQuery = ref('');
+const isMobileUnlocked = ref(false);
 
 const form = useForm({
     mobile: '',
@@ -105,6 +106,7 @@ const openEditDialog = (contact: Contact) => {
     form.name = contact.name || '';
     form.email = contact.email || '';
     form.group_ids = contact.groups.map(g => g.id);
+    isMobileUnlocked.value = false; // Reset lock state
     showEditDialog.value = true;
 };
 
@@ -117,8 +119,13 @@ const updateContact = () => {
             form.reset();
             showEditDialog.value = false;
             contactToEdit.value = null;
+            isMobileUnlocked.value = false;
         },
     });
+};
+
+const toggleMobileLock = () => {
+    isMobileUnlocked.value = !isMobileUnlocked.value;
 };
 
 const handleFileChange = (event: Event) => {
@@ -381,12 +388,26 @@ const formatDate = (date: string) => {
                 <form @submit.prevent="updateContact" class="space-y-4">
                     <div>
                         <Label for="edit-mobile">Mobile Number</Label>
-                        <Input
-                            id="edit-mobile"
-                            v-model="form.mobile"
-                            placeholder="09171234567 or +639171234567"
-                            required
-                        />
+                        <div class="flex gap-2">
+                            <Input
+                                id="edit-mobile"
+                                v-model="form.mobile"
+                                placeholder="09171234567 or +639171234567"
+                                :readonly="!isMobileUnlocked"
+                                :class="{ 'bg-muted': !isMobileUnlocked }"
+                                required
+                            />
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="icon"
+                                @click="toggleMobileLock"
+                                :title="isMobileUnlocked ? 'Lock mobile number' : 'Unlock to edit mobile number'"
+                            >
+                                <Lock v-if="!isMobileUnlocked" class="h-4 w-4" />
+                                <Unlock v-else class="h-4 w-4" />
+                            </Button>
+                        </div>
                         <p
                             v-if="form.errors.mobile"
                             class="mt-1 text-sm text-destructive"
