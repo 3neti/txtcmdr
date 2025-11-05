@@ -17,11 +17,11 @@ class ScheduleMessage
 
     /**
      * Schedule a message for future delivery
-     * 
-     * @param array|string $recipients Phone numbers, contact names, or group names
-     * @param string $message Message content
-     * @param string|Carbon $scheduledAt When to send
-     * @param string|null $senderId Sender ID
+     *
+     * @param  array|string  $recipients  Phone numbers, contact names, or group names
+     * @param  string  $message  Message content
+     * @param  string|Carbon  $scheduledAt  When to send
+     * @param  string|null  $senderId  Sender ID
      */
     public function handle(
         array|string $recipients,
@@ -30,12 +30,12 @@ class ScheduleMessage
         ?string $senderId = null
     ): ScheduledMessage {
         $senderId = $senderId ?? config('sms.default_sender_id', 'TXTCMDR');
-        $scheduledAt = $scheduledAt instanceof Carbon 
-            ? $scheduledAt 
+        $scheduledAt = $scheduledAt instanceof Carbon
+            ? $scheduledAt
             : Carbon::parse($scheduledAt);
 
         // Normalize recipients
-        $recipientArray = is_string($recipients) 
+        $recipientArray = is_string($recipients)
             ? array_map('trim', explode(',', $recipients))
             : $recipients;
 
@@ -97,6 +97,7 @@ class ScheduleMessage
                 $contact = Contact::fromPhoneNumber($phone);
                 $numbers[] = $contact->e164_mobile;
                 $totalCount++;
+
                 continue;
             } catch (\Exception $e) {
                 // Not a valid phone number
@@ -107,6 +108,7 @@ class ScheduleMessage
             if ($contact) {
                 $numbers[] = $contact->e164_mobile;
                 $totalCount++;
+
                 continue;
             }
 

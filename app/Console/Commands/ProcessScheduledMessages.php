@@ -31,6 +31,7 @@ class ProcessScheduledMessages extends Command
 
         if ($messages->isEmpty()) {
             $this->info('No scheduled messages ready to send');
+
             return 0;
         }
 

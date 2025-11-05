@@ -16,26 +16,26 @@ class SendToMultipleRecipients
     public function handle(array|string $recipients, string $message, ?string $senderId = null): array
     {
         $senderId = $senderId ?? config('sms.default_sender_id', 'TXTCMDR');
-        
+
         // Normalize to array
-        $recipientArray = is_string($recipients) 
-            ? explode(',', $recipients) 
+        $recipientArray = is_string($recipients)
+            ? explode(',', $recipients)
             : $recipients;
-        
+
         $normalizedRecipients = [];
         $dispatchedCount = 0;
-        
+
         foreach ($recipientArray as $mobile) {
             try {
                 // Create PhoneNumber object and Contact
                 $phone = new PhoneNumber(trim($mobile), 'PH');
                 $contact = Contact::fromPhoneNumber($phone);
-                
+
                 // Get E.164 format for SMS sending
                 $e164Mobile = $contact->e164_mobile;
-                
+
                 SendSMSJob::dispatch($e164Mobile, $message, $senderId);
-                
+
                 $normalizedRecipients[] = $e164Mobile;
                 $dispatchedCount++;
             } catch (\Exception $e) {
@@ -43,7 +43,7 @@ class SendToMultipleRecipients
                 continue;
             }
         }
-        
+
         return [
             'status' => 'queued',
             'count' => $dispatchedCount,

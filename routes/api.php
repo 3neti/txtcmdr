@@ -25,22 +25,22 @@ Route::get('/user', function (Request $request) {
 Route::middleware('auth:sanctum')->group(function () {
     // Send to multiple recipients
     Route::post('/send', SendToMultipleRecipients::class);
-    
+
     // Send to multiple groups
     Route::post('/groups/send', SendToMultipleGroups::class);
-    
+
     // Group Management
     Route::get('/groups', ListGroups::class);
     Route::post('/groups', CreateGroup::class);
     Route::get('/groups/{id}', GetGroup::class);
     Route::delete('/groups/{id}', DeleteGroup::class);
-    
+
     // Scheduled Messages (Phase 3)
     Route::post('/send/schedule', ScheduleMessage::class);
     Route::get('/scheduled-messages', ListScheduledMessages::class);
     Route::put('/scheduled-messages/{id}', UpdateScheduledMessage::class);
     Route::post('/scheduled-messages/{id}/cancel', CancelScheduledMessage::class);
-    
+
     // Bulk Import (Phase 3)
     Route::post('/contacts/import', ImportContactsFromFile::class);
     Route::post('/sms/bulk-send', BulkSendFromFile::class);

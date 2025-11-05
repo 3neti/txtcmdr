@@ -18,7 +18,7 @@ return new class extends Migration
             $table->text('notes')->nullable();
             $table->string('added_by')->default('system');
             $table->timestamps();
-            
+
             $table->index('mobile');
         });
     }

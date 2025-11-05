@@ -23,7 +23,7 @@ class ProcessScheduledMessage implements ShouldQueue
     {
         $scheduledMessage = ScheduledMessage::find($this->scheduledMessageId);
 
-        if (!$scheduledMessage || $scheduledMessage->status !== 'pending') {
+        if (! $scheduledMessage || $scheduledMessage->status !== 'pending') {
             return;
         }
 
@@ -34,12 +34,12 @@ class ProcessScheduledMessage implements ShouldQueue
         $numbers = [];
 
         // Collect all numbers
-        if (!empty($recipientData['numbers'])) {
+        if (! empty($recipientData['numbers'])) {
             $numbers = array_merge($numbers, $recipientData['numbers']);
         }
 
         // Collect numbers from groups
-        if (!empty($recipientData['groups'])) {
+        if (! empty($recipientData['groups'])) {
             foreach ($recipientData['groups'] as $groupData) {
                 $group = Group::find($groupData['id']);
                 if ($group) {
@@ -47,11 +47,12 @@ class ProcessScheduledMessage implements ShouldQueue
                         ->pluck('mobile')
                         ->map(function ($mobile) {
                             $contact = Contact::where('mobile', $mobile)->first();
+
                             return $contact?->e164_mobile;
                         })
                         ->filter()
                         ->toArray();
-                    
+
                     $numbers = array_merge($numbers, $groupNumbers);
                 }
             }

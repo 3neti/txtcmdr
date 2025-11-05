@@ -21,7 +21,7 @@ class UpdateScheduledMessage
         $scheduledMessage = ScheduledMessage::findOrFail($id);
 
         // Only allow editing if status is 'pending' and scheduled_at is in the future
-        if (!$scheduledMessage->isEditable()) {
+        if (! $scheduledMessage->isEditable()) {
             abort(422, 'Cannot edit this scheduled message');
         }
 

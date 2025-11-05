@@ -21,7 +21,7 @@ class BlacklistedNumber extends Model
         try {
             $phone = new PhoneNumber($mobile, 'PH');
             $e164 = $phone->formatE164();
-            
+
             return self::where('mobile', $e164)->exists();
         } catch (\Exception $e) {
             return false;
@@ -36,7 +36,7 @@ class BlacklistedNumber extends Model
         string $addedBy = 'system'
     ): self {
         $phone = new PhoneNumber($mobile, 'PH');
-        
+
         return self::firstOrCreate(
             ['mobile' => $phone->formatE164()],
             [

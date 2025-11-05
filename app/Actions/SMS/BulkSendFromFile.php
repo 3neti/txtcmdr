@@ -20,35 +20,36 @@ class BulkSendFromFile
         string $senderId,
         string $mobileColumn = 'mobile'
     ): array {
-        $parser = new FileParser();
+        $parser = new FileParser;
         $rows = $parser->parse($file);
-        
+
         $queued = 0;
         $invalid = 0;
         $recipients = [];
-        
+
         foreach ($rows as $row) {
             $mobile = $row[$mobileColumn] ?? null;
-            
-            if (!$mobile || !$this->validatePhone($mobile)) {
+
+            if (! $mobile || ! $this->validatePhone($mobile)) {
                 $invalid++;
+
                 continue;
             }
-            
+
             // Normalize to E.164
             try {
                 $phone = new PhoneNumber($mobile, 'PH');
                 $e164Mobile = $phone->formatE164();
-                
+
                 SendSMSJob::dispatch($e164Mobile, $message, $senderId);
-                
+
                 $recipients[] = $e164Mobile;
                 $queued++;
             } catch (\Exception $e) {
                 $invalid++;
             }
         }
-        
+
         return [
             'status' => 'queued',
             'queued' => $queued,
@@ -83,6 +84,7 @@ class BulkSendFromFile
     {
         try {
             $phone = new PhoneNumber($mobile, 'PH');
+
             return $phone->isValid();
         } catch (\Exception $e) {
             return false;

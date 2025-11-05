@@ -13,16 +13,16 @@ class ImportContactsFromFile
     use AsAction;
 
     public function handle(
-        UploadedFile $file, 
+        UploadedFile $file,
         ?int $groupId = null,
         array $columnMapping = []
     ): array {
         // Store file temporarily
         $path = $file->store('imports', 'local');
-        
+
         // Dispatch job for async processing
         ContactImportJob::dispatch($path, $groupId, $columnMapping);
-        
+
         return [
             'status' => 'queued',
             'message' => 'Import queued for processing',

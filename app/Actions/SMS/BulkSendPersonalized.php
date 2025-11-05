@@ -18,11 +18,11 @@ class BulkSendPersonalized
 
     /**
      * Process personalized bulk SMS from CSV/XLSX
-     * 
+     *
      * Supports two formats:
      * - 2 columns: mobile, message
      * - 3 columns: mobile, name, message
-     * 
+     *
      * Messages can include variables: {{mobile}}, {{name}}
      */
     public function handle(
@@ -30,38 +30,39 @@ class BulkSendPersonalized
         string $senderId,
         bool $importContacts = true
     ): array {
-        $parser = new FileParser();
+        $parser = new FileParser;
         $rows = $parser->parse($file);
-        
+
         if (empty($rows)) {
             throw new \InvalidArgumentException('File is empty or could not be parsed');
         }
-        
+
         // Get first row (may have numeric key starting at 1)
         $firstRow = reset($rows);
-        
+
         // Detect structure from first row
         $structure = $this->detectStructure(array_keys($firstRow));
-        
+
         $queued = 0;
         $invalid = 0;
         $imported = 0;
-        $personalizer = new MessagePersonalizer();
-        
+        $personalizer = new MessagePersonalizer;
+
         foreach ($rows as $row) {
             try {
                 // Extract data based on structure
                 $data = $this->extractRowData($row, $structure);
-                
-                if (!$data['mobile'] || !$data['message']) {
+
+                if (! $data['mobile'] || ! $data['message']) {
                     $invalid++;
+
                     continue;
                 }
-                
+
                 // Normalize phone number
                 $phone = new PhoneNumber($data['mobile'], 'PH');
                 $e164Mobile = $phone->formatE164();
-                
+
                 // Import contact if enabled
                 if ($importContacts && $data['name']) {
                     $contact = Contact::createFromArray([
@@ -72,7 +73,7 @@ class BulkSendPersonalized
                         $imported++;
                     }
                 }
-                
+
                 // Personalize message
                 $personalizedMessage = $personalizer->personalize(
                     $data['message'],
@@ -81,16 +82,16 @@ class BulkSendPersonalized
                         'name' => $data['name'] ?? '',
                     ]
                 );
-                
+
                 // Queue SMS
                 SendSMSJob::dispatch($e164Mobile, $personalizedMessage, $senderId);
                 $queued++;
-                
+
             } catch (\Exception $e) {
                 $invalid++;
             }
         }
-        
+
         return [
             'status' => 'queued',
             'queued' => $queued,
@@ -126,20 +127,20 @@ class BulkSendPersonalized
     private function detectStructure(array $columns): string
     {
         $count = count($columns);
-        
+
         // 2-column format: mobile, message
         if ($count === 2 && $columns[0] === 'mobile' && $columns[1] === 'message') {
             return 'mobile_message';
         }
-        
+
         // 3-column format: mobile, name, message
-        if ($count === 3 && 
-            $columns[0] === 'mobile' && 
-            $columns[1] === 'name' && 
+        if ($count === 3 &&
+            $columns[0] === 'mobile' &&
+            $columns[1] === 'name' &&
             $columns[2] === 'message') {
             return 'mobile_name_message';
         }
-        
+
         throw new \InvalidArgumentException(
             'Invalid CSV structure. Expected columns: "mobile,message" OR "mobile,name,message"'
         );
@@ -157,7 +158,7 @@ class BulkSendPersonalized
                 'name' => null,
             ];
         }
-        
+
         // mobile_name_message format
         return [
             'mobile' => $row['mobile'] ?? null,

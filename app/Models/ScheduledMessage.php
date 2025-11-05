@@ -53,7 +53,7 @@ class ScheduledMessage extends Model
 
     public function isEditable(): bool
     {
-        return $this->status === 'pending' 
+        return $this->status === 'pending'
             && $this->scheduled_at->isFuture();
     }
 
@@ -62,10 +62,10 @@ class ScheduledMessage extends Model
     {
         return Attribute::make(
             get: function () {
-                return match($this->recipient_type) {
-                    'numbers' => count($this->recipient_data['numbers'] ?? []) . ' number(s)',
-                    'group' => ($this->recipient_data['group_name'] ?? 'Group') . ' (' . $this->total_recipients . ')',
-                    'mixed' => $this->total_recipients . ' recipient(s)',
+                return match ($this->recipient_type) {
+                    'numbers' => count($this->recipient_data['numbers'] ?? []).' number(s)',
+                    'group' => ($this->recipient_data['group_name'] ?? 'Group').' ('.$this->total_recipients.')',
+                    'mixed' => $this->total_recipients.' recipient(s)',
                     default => 'Unknown'
                 };
             }

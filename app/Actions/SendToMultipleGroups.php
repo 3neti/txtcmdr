@@ -15,35 +15,35 @@ class SendToMultipleGroups
     public function handle(array|string $groups, string $message, ?string $senderId = null): array
     {
         $senderId = $senderId ?? config('sms.default_sender_id', 'TXTCMDR');
-        
+
         // Normalize to array
-        $groupArray = is_string($groups) 
-            ? explode(',', $groups) 
+        $groupArray = is_string($groups)
+            ? explode(',', $groups)
             : $groups;
-        
+
         // Trim and filter
         $groupArray = array_filter(
             array_map('trim', $groupArray)
         );
-        
+
         $dispatchedGroups = [];
         $totalContacts = 0;
-        
+
         foreach ($groupArray as $groupIdentifier) {
             $group = Group::where('name', $groupIdentifier)
                 ->orWhere('id', $groupIdentifier)
                 ->first();
-            
+
             if ($group) {
                 BroadcastToGroupJob::dispatch(
                     $group->id,
                     $message,
                     $senderId
                 );
-                
+
                 $contactCount = $group->contacts()->count();
                 $totalContacts += $contactCount;
-                
+
                 $dispatchedGroups[] = [
                     'id' => $group->id,
                     'name' => $group->name,
@@ -51,7 +51,7 @@ class SendToMultipleGroups
                 ];
             }
         }
-        
+
         return [
             'status' => 'queued',
             'groups' => $dispatchedGroups,

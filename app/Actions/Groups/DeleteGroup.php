@@ -13,7 +13,7 @@ class DeleteGroup
     public function handle(int $id): bool
     {
         $group = Group::findOrFail($id);
-        
+
         return $group->delete();
     }
 

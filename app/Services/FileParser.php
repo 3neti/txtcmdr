@@ -11,8 +11,8 @@ class FileParser
     public function parse(UploadedFile $file): array
     {
         $extension = $file->getClientOriginalExtension();
-        
-        return match($extension) {
+
+        return match ($extension) {
             'csv' => $this->parseCsv($file),
             'xlsx', 'xls' => $this->parseExcel($file),
             default => throw new \InvalidArgumentException('Unsupported file type'),
@@ -22,8 +22,8 @@ class FileParser
     public function parseFromPath(string $path): array
     {
         $extension = pathinfo($path, PATHINFO_EXTENSION);
-        
-        return match($extension) {
+
+        return match ($extension) {
             'csv' => $this->parseCsvFromPath($path),
             'xlsx', 'xls' => $this->parseExcelFromPath($path),
             default => throw new \InvalidArgumentException('Unsupported file type'),
@@ -34,7 +34,7 @@ class FileParser
     {
         $csv = Reader::createFromPath($file->getRealPath());
         $csv->setHeaderOffset(0); // First row is header
-        
+
         return iterator_to_array($csv->getRecords());
     }
 
@@ -42,7 +42,7 @@ class FileParser
     {
         $csv = Reader::createFromPath($path);
         $csv->setHeaderOffset(0);
-        
+
         return iterator_to_array($csv->getRecords());
     }
 
@@ -50,7 +50,7 @@ class FileParser
     {
         $spreadsheet = IOFactory::load($file->getRealPath());
         $worksheet = $spreadsheet->getActiveSheet();
-        
+
         return $this->extractRows($worksheet);
     }
 
@@ -58,7 +58,7 @@ class FileParser
     {
         $spreadsheet = IOFactory::load($path);
         $worksheet = $spreadsheet->getActiveSheet();
-        
+
         return $this->extractRows($worksheet);
     }
 
@@ -66,16 +66,16 @@ class FileParser
     {
         $rows = [];
         $headers = [];
-        
+
         foreach ($worksheet->getRowIterator() as $rowIndex => $row) {
             $cellIterator = $row->getCellIterator();
             $cellIterator->setIterateOnlyExistingCells(false);
-            
+
             $rowData = [];
             foreach ($cellIterator as $cell) {
                 $rowData[] = $cell->getValue();
             }
-            
+
             if ($rowIndex === 1) {
                 // First row is header
                 $headers = array_map('strtolower', array_map('trim', $rowData));
@@ -84,11 +84,11 @@ class FileParser
                 if (empty(array_filter($rowData))) {
                     continue;
                 }
-                
+
                 $rows[] = array_combine($headers, $rowData);
             }
         }
-        
+
         return $rows;
     }
 }

@@ -20,6 +20,6 @@ return [
         'maximum' => env('ENGAGESPARK_MAX_TOPUP', 1000),
     ],
     'notifiable' => [
-        'route' => env('ENGAGESPARK_NOTIFIABLE_ROUTE', 'mobile')
-    ]
+        'route' => env('ENGAGESPARK_NOTIFIABLE_ROUTE', 'mobile'),
+    ],
 ];

@@ -14,7 +14,7 @@ class CancelScheduledMessage
     {
         $scheduledMessage = ScheduledMessage::findOrFail($id);
 
-        if (!$scheduledMessage->isCancellable()) {
+        if (! $scheduledMessage->isCancellable()) {
             abort(422, 'Cannot cancel this message');
         }
 
