@@ -73,6 +73,8 @@ Route::get('send-sms', function () {
     return Inertia::render('SendSMS', [
         'senderIds' => config('sms.sender_ids'),
         'defaultSenderId' => config('sms.default_sender_id'),
+        'recipientsPlaceholder' => config('sms.recipients_placeholder'),
+        'messagePlaceholder' => config('sms.message_placeholder'),
     ]);
 })->middleware(['auth', 'verified'])->name('sendSMS');
 

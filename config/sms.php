@@ -41,6 +41,30 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Recipients Placeholder
+    |--------------------------------------------------------------------------
+    |
+    | This is the placeholder text shown in the recipients field on the
+    | Send SMS page. Customize this to show examples relevant to your use case.
+    |
+    */
+
+    'recipients_placeholder' => env('SMS_RECIPIENTS_PLACEHOLDER', ''),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Message Placeholder
+    |--------------------------------------------------------------------------
+    |
+    | This is the placeholder text shown in the message field on the
+    | Send SMS page. Customize this to provide helpful guidance to users.
+    |
+    */
+
+    'message_placeholder' => env('SMS_MESSAGE_PLACEHOLDER', ''),
+
+    /*
+    |--------------------------------------------------------------------------
     | SMS Drivers
     |--------------------------------------------------------------------------
     |

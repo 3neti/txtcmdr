@@ -13,10 +13,13 @@ A modern SMS broadcasting system built with Laravel 12 and Vue 3 for sending tar
 
 ### Advanced Features
 - **Smart Contact Lookup** - Display contact names alongside phone numbers
-- **Failed Message Retry** - One-click retry for failed SMS
-- **Real-time Analytics** - Dashboard with message stats and 7-day activity chart
-- **Toast Notifications** - Real-time feedback for all operations
-- **Error Tracking** - Comprehensive logging with error summaries
+- **Failed Message Retry** - One-click retry for failed SMS with authorization checks
+- **Real-time Analytics** - Dashboard with message stats, 7-day activity chart, and failed message summaries
+- **Toast Notifications** - Real-time feedback for all operations (vue-sonner)
+- **Error Tracking** - Comprehensive logging with detailed error messages and context
+- **Quick Schedule** - Incremental time buttons (+1 min, +5 mins, +1 hour, +1 day, etc.)
+- **CSV Export** - Export message history with filters to CSV
+- **Configurable UI** - Customizable placeholders and sender IDs via environment variables
 
 ## Tech Stack
 
@@ -90,6 +93,9 @@ DB_CONNECTION=sqlite
 # SMS Provider (EngageSPARK)
 SMS_DRIVER=engagespark
 SMS_DEFAULT_SENDER_ID=TXTCMDR
+SMS_SENDER_IDS="cashless,Quezon City,TXTCMDR"
+SMS_RECIPIENTS_PLACEHOLDER="+639171234567, 09181234567, Sales"
+SMS_MESSAGE_PLACEHOLDER="Your message here..."
 ENGAGESPARK_API_KEY=your-api-key
 ENGAGESPARK_API_URL=https://start.engagespark.com/api/v1
 ENGAGESPARK_ORGANIZATION_ID=your-org-id
@@ -138,6 +144,39 @@ mobile,name,message
 09173011987,Juan,"Hi {{name}}! Your account {{mobile}} is ready."
 09178251991,Maria,"Hello {{name}}, welcome!"
 ```
+
+### Message History
+
+- View all sent messages with status (sent/failed/pending)
+- Search by recipient or message content
+- Filter by status (all/sent/failed/pending)
+- Export to CSV with current filters
+- Retry failed messages with one click
+- View contact names alongside phone numbers
+
+### UI Customization
+
+Customize placeholders and sender IDs in `.env`:
+
+```env
+# Sender ID dropdown options (comma-separated)
+SMS_SENDER_IDS="cashless,Quezon City,TXTCMDR"
+
+# Placeholder for recipients field
+SMS_RECIPIENTS_PLACEHOLDER="+639171234567, 09181234567, Sales"
+
+# Placeholder for message field
+SMS_MESSAGE_PLACEHOLDER="Your message here..."
+```
+
+### Quick Schedule Feature
+
+When scheduling messages, use quick action buttons to increment time:
+- **+1 min, +5 mins, +15 mins, +30 mins** - Quick minute increments
+- **+1 hour, +2 hours** - Hour increments
+- **+1 day, +1 week** - Day/week increments
+
+Click multiple times to build up the desired time (e.g., +1 hour × 2 + 30 mins = 2h 30m from now)
 
 ## Development
 
@@ -217,8 +256,13 @@ php artisan schedule:work
 
 ### Management
 - `GET /api/groups` - List groups
+- `POST /api/groups` - Create group
+- `DELETE /api/groups/{id}` - Delete group
 - `GET /api/scheduled-messages` - List scheduled messages
+- `PUT /api/scheduled-messages/{id}` - Update scheduled message
 - `POST /api/scheduled-messages/{id}/cancel` - Cancel scheduled message
+- `GET /message-history/export` - Export message history to CSV
+- `POST /message-logs/{id}/retry` - Retry failed message
 
 All API endpoints require Sanctum token authentication.
 
@@ -227,21 +271,39 @@ All API endpoints require Sanctum token authentication.
 ```
 app/
 ├── Actions/           # Laravel Actions for business logic
-├── Jobs/             # Queue jobs (SendSMSJob, etc.)
-└── Models/           # Eloquent models
+│   ├── Groups/       # Group management actions
+│   ├── BulkSendFromFile.php
+│   ├── BulkSendPersonalized.php
+│   ├── ExportMessageHistory.php
+│   ├── RetryFailedMessage.php
+│   └── ScheduleMessage.php
+├── Jobs/             # Queue jobs (SendSMSJob, ProcessScheduledMessage, etc.)
+├── Models/           # Eloquent models (Contact, Group, MessageLog, ScheduledMessage)
+└── Services/         # Services (FileParser, MessagePersonalizer)
 
 resources/js/
 ├── components/       # Vue components
+│   └── ui/          # shadcn-vue UI components
 ├── pages/           # Inertia pages (route-mapped)
-├── layouts/         # Page layouts
-└── composables/     # Vue composables
+│   ├── Dashboard.vue
+│   ├── SendSMS.vue
+│   ├── MessageHistory/
+│   ├── ScheduledMessages/
+│   ├── Groups/
+│   ├── Contacts/
+│   └── BulkOperations/
+├── layouts/         # Page layouts (AppLayout, AuthLayout)
+├── composables/     # Vue composables
+└── routes/          # Generated Wayfinder route helpers
 
 tests/
-├── Feature/         # Feature tests
+├── Feature/         # Feature tests (49 tests, 148 assertions)
+│   ├── Actions/     # SendToMultipleRecipientsTest, ScheduleMessageTest, etc.
+│   └── Jobs/        # SendSMSJobTest
 └── Unit/           # Unit tests
 
 packages/
-└── lbhurtado/contact/  # Custom contact management package
+└── lbhurtado/contact/  # Custom contact management package (embedded)
 ```
 
 ## Deployment

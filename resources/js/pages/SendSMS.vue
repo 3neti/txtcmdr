@@ -6,6 +6,8 @@ import AppLayout from '@/layouts/AppLayout.vue';
 interface Props {
     senderIds: string[];
     defaultSenderId: string;
+    recipientsPlaceholder: string;
+    messagePlaceholder: string;
 }
 
 const props = defineProps<Props>();
@@ -138,6 +140,30 @@ const handleSubmit = () => {
         sendNow();
     }
 };
+
+const addTimeToSchedule = (minutes: number) => {
+    // If no time is set, start from now
+    let baseTime: Date;
+    if (scheduledAt.value) {
+        // Parse the existing datetime-local value (already in local time)
+        baseTime = new Date(scheduledAt.value);
+    } else {
+        // Start from current local time
+        baseTime = new Date();
+    }
+    
+    // Add the specified minutes
+    baseTime.setMinutes(baseTime.getMinutes() + minutes);
+    
+    // Format to datetime-local input format (YYYY-MM-DDTHH:mm) in local time
+    const year = baseTime.getFullYear();
+    const month = String(baseTime.getMonth() + 1).padStart(2, '0');
+    const day = String(baseTime.getDate()).padStart(2, '0');
+    const hours = String(baseTime.getHours()).padStart(2, '0');
+    const mins = String(baseTime.getMinutes()).padStart(2, '0');
+    
+    scheduledAt.value = `${year}-${month}-${day}T${hours}:${mins}`;
+};
 </script>
 
 <template>
@@ -172,7 +198,7 @@ const handleSubmit = () => {
                                 <Input
                                     id="recipients"
                                     v-model="form.recipients"
-                                    placeholder="09173011987, 09178251991 or group names"
+                                    :placeholder="props.recipientsPlaceholder"
                                     :class="{ 'border-red-500': errors.recipients }"
                                 />
                                 <p class="text-sm text-muted-foreground">
@@ -201,7 +227,7 @@ const handleSubmit = () => {
                                     maxlength="1600"
                                     class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                     :class="{ 'border-red-500': errors.message }"
-                                    placeholder="Your message here..."
+                                    :placeholder="props.messagePlaceholder"
                                 />
                                 <div class="flex items-center justify-between">
                                     <p class="text-sm text-muted-foreground">
@@ -244,14 +270,96 @@ const handleSubmit = () => {
                                     </Label>
                                 </div>
 
-                                <div v-if="scheduleMode" class="space-y-2">
-                                    <Label for="scheduled_at">Schedule Date & Time</Label>
-                                    <Input
-                                        id="scheduled_at"
-                                        v-model="scheduledAt"
-                                        type="datetime-local"
-                                        :min="new Date().toISOString().slice(0, 16)"
-                                    />
+                                <div v-if="scheduleMode" class="space-y-3">
+                                    <div>
+                                        <Label for="scheduled_at">Schedule Date & Time</Label>
+                                        <Input
+                                            id="scheduled_at"
+                                            v-model="scheduledAt"
+                                            type="datetime-local"
+                                            :min="new Date().toISOString().slice(0, 16)"
+                                            class="mt-1.5"
+                                        />
+                                    </div>
+                                    
+                                    <!-- Quick Schedule Buttons -->
+                                    <div>
+                                        <p class="text-xs text-muted-foreground mb-2">Quick schedule:</p>
+                                        <div class="flex flex-wrap gap-2">
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                @click="addTimeToSchedule(1)"
+                                                class="text-xs"
+                                            >
+                                                +1 min
+                                            </Button>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                @click="addTimeToSchedule(5)"
+                                                class="text-xs"
+                                            >
+                                                +5 mins
+                                            </Button>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                @click="addTimeToSchedule(15)"
+                                                class="text-xs"
+                                            >
+                                                +15 mins
+                                            </Button>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                @click="addTimeToSchedule(30)"
+                                                class="text-xs"
+                                            >
+                                                +30 mins
+                                            </Button>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                @click="addTimeToSchedule(60)"
+                                                class="text-xs"
+                                            >
+                                                +1 hour
+                                            </Button>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                @click="addTimeToSchedule(120)"
+                                                class="text-xs"
+                                            >
+                                                +2 hours
+                                            </Button>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                @click="addTimeToSchedule(1440)"
+                                                class="text-xs"
+                                            >
+                                                +1 day
+                                            </Button>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                @click="addTimeToSchedule(10080)"
+                                                class="text-xs"
+                                            >
+                                                +1 week
+                                            </Button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 

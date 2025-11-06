@@ -367,18 +367,25 @@ mobile,name,message
 
 **Dashboard** (`pages/Dashboard.vue`):
 - Real-time stats cards: Total groups, contacts, scheduled messages, sent messages
+- **Message Analytics**: Today's messages, this week's messages, success rate percentage
+- **7-Day Activity Chart**: Visual representation of message volume over the last 7 days
+- **Failed Messages Summary**: Recent failed messages with error details and retry buttons
 - Quick action buttons: Send SMS, Manage Groups, Manage Contacts
 - Recent activity feed: Latest groups and upcoming scheduled messages
 - Powered by Inertia with live data from backend
 
 **Send SMS** (`pages/SendSMS.vue`):
-- Recipient input (phone numbers)
+- Recipient input with configurable placeholder (via `SMS_RECIPIENTS_PLACEHOLDER`)
 - Message textarea with character counter (1600 chars max, 160 chars/SMS)
-- Sender ID selector (cashless, Quezon City, TXTCMDR)
+- Message placeholder configurable via `SMS_MESSAGE_PLACEHOLDER`
+- Sender ID selector with configurable options (via `SMS_SENDER_IDS`)
 - Schedule for later option with datetime picker
+- **Quick Schedule Buttons**: Incremental time add buttons (+1 min, +5 mins, +15 mins, +30 mins, +1 hour, +2 hours, +1 day, +1 week)
+- Click buttons multiple times to build up desired time
 - Send now vs Schedule for later
 - Success/error alerts with form validation
 - Button state management with timeout protection
+- Toast notifications for real-time feedback
 
 **Bulk Operations** (`pages/BulkOperations/Index.vue`):
 - **Import Contacts**: Upload CSV/XLSX with mobile, name, email. Optional group assignment.
@@ -409,6 +416,18 @@ mobile,name,message
 - Cancel pending/processing messages
 - View message details: sender, recipients, scheduled time
 - Status badges with color coding
+
+**Message History** (`pages/MessageHistory/Index.vue`):
+- View all sent messages with comprehensive logging
+- Search by recipient or message content
+- Filter by status: All, Sent, Failed, Pending
+- Display contact names alongside phone numbers (smart lookup)
+- Pagination (20 messages per page)
+- **Export to CSV**: Export filtered message history with current search/filter
+- **Retry Failed Messages**: One-click retry button with authorization checks
+- Timestamps for sent/failed/created dates
+- Error message display for failed messages
+- Toast notifications for all operations
 
 #### Directory Layout
 ```
@@ -452,6 +471,7 @@ GET  /groups                 → List groups
 GET  /groups/{id}            → View group details
 GET  /contacts               → List contacts
 GET  /scheduled-messages     → List scheduled messages
+GET  /message-history        → Message history with search/filter
 
 # Actions
 POST   /sms/send             → Send SMS immediately
@@ -465,6 +485,8 @@ POST   /contacts/import      → Import contacts from CSV
 POST   /bulk/send            → Bulk send from file
 POST   /bulk/send-personalized → Personalized bulk send
 POST   /scheduled-messages/{id}/cancel → Cancel scheduled message
+GET    /message-history/export → Export message history to CSV
+POST   /message-logs/{id}/retry → Retry failed message
 ```
 
 #### Wayfinder Integration
