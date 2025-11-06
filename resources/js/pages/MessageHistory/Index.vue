@@ -31,7 +31,7 @@ interface MessageLog {
     failed_at: string | null;
     error_message: string | null;
     created_at: string;
-    contact?: Contact | null;
+    contact_with_name?: Contact | null;
 }
 
 interface PaginatedLogs {
@@ -101,7 +101,7 @@ const formatPhone = (mobile: string) => {
 
 const formatRecipient = (log: MessageLog) => {
     const phone = formatPhone(log.recipient);
-    const contactName = log.contact?.meta?.name;
+    const contactName = log.contact_with_name?.meta?.name;
     
     return contactName ? `${contactName} (${phone})` : phone;
 };

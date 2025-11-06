@@ -27,6 +27,8 @@ class MessageLog extends Model
         'cost' => 'decimal:4',
     ];
 
+    protected $appends = ['contact_with_name'];
+
     // Relationships
     public function user(): BelongsTo
     {
@@ -40,7 +42,34 @@ class MessageLog extends Model
 
     public function contact(): HasOne
     {
+        // Try to match by recipient (could be in E.164 format like +639178251991)
+        // But contacts might be stored in local format (09178251991) or E.164
         return $this->hasOne(Contact::class, 'mobile', 'recipient');
+    }
+
+    /**
+     * Get contact with normalized phone lookup
+     * Handles both E.164 (+639...) and local (09...) formats
+     */
+    public function getContactWithNameAttribute()
+    {
+        // Try direct match first (E.164 to E.164)
+        $contact = Contact::where('mobile', $this->recipient)->first();
+
+        if (! $contact) {
+            // Try converting E.164 to local format (e.g., +639178251991 -> 09178251991)
+            if (str_starts_with($this->recipient, '+63')) {
+                $localFormat = '0'.substr($this->recipient, 3);
+                $contact = Contact::where('mobile', $localFormat)->first();
+            }
+            // Try converting local to E.164 format (e.g., 09178251991 -> +639178251991)
+            elseif (str_starts_with($this->recipient, '09')) {
+                $e164Format = '+63'.substr($this->recipient, 1);
+                $contact = Contact::where('mobile', $e164Format)->first();
+            }
+        }
+
+        return $contact;
     }
 
     // Scopes

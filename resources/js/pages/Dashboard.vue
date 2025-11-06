@@ -53,7 +53,7 @@ interface FailedMessage {
     error_message: string | null;
     failed_at: string;
     sender_id: string;
-    contact?: Contact | null;
+    contact_with_name?: Contact | null;
 }
 
 defineProps<{
@@ -278,7 +278,7 @@ const formatRecipient = (recipient: string, contact?: Contact | null) => {
                             <div class="flex-1 space-y-1">
                                 <div class="flex items-center gap-2 text-sm">
                                     <span class="font-medium text-red-900 dark:text-red-100">
-                                        To: {{ formatRecipient(failure.recipient, failure.contact) }}
+                                        To: {{ formatRecipient(failure.recipient, failure.contact_with_name) }}
                                     </span>
                                     <span class="text-xs text-red-600/70 dark:text-red-400/70">
                                         From: {{ failure.sender_id }}
