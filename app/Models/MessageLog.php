@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class MessageLog extends Model
 {
@@ -35,6 +36,11 @@ class MessageLog extends Model
     public function scheduledMessage(): BelongsTo
     {
         return $this->belongsTo(ScheduledMessage::class);
+    }
+
+    public function contact(): HasOne
+    {
+        return $this->hasOne(Contact::class, 'mobile', 'recipient');
     }
 
     // Scopes

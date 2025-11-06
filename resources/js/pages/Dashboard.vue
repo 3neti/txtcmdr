@@ -39,6 +39,13 @@ interface ScheduledMessage {
     total_recipients: number;
 }
 
+interface Contact {
+    mobile: string;
+    meta?: {
+        name?: string;
+    };
+}
+
 interface FailedMessage {
     id: number;
     recipient: string;
@@ -46,6 +53,7 @@ interface FailedMessage {
     error_message: string | null;
     failed_at: string;
     sender_id: string;
+    contact?: Contact | null;
 }
 
 defineProps<{
@@ -98,6 +106,13 @@ const formatPhone = (mobile: string) => {
         return mobile.replace('+63', '0');
     }
     return mobile;
+};
+
+const formatRecipient = (recipient: string, contact?: Contact | null) => {
+    const phone = formatPhone(recipient);
+    const contactName = contact?.meta?.name;
+    
+    return contactName ? `${contactName} (${phone})` : phone;
 };
 </script>
 
@@ -263,7 +278,7 @@ const formatPhone = (mobile: string) => {
                             <div class="flex-1 space-y-1">
                                 <div class="flex items-center gap-2 text-sm">
                                     <span class="font-medium text-red-900 dark:text-red-100">
-                                        To: {{ formatPhone(failure.recipient) }}
+                                        To: {{ formatRecipient(failure.recipient, failure.contact) }}
                                     </span>
                                     <span class="text-xs text-red-600/70 dark:text-red-400/70">
                                         From: {{ failure.sender_id }}

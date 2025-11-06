@@ -63,6 +63,7 @@ Route::get('dashboard', function () {
             ->get(),
         'recentFailures' => \App\Models\MessageLog::where('user_id', $user->id)
             ->failed()
+            ->with(['contact:mobile,meta'])
             ->latest('failed_at')
             ->take(5)
             ->get(),
@@ -117,6 +118,7 @@ Route::get('message-history', function (Request $request) {
 
     $query = \App\Models\MessageLog::query()
         ->where('user_id', auth()->id())
+        ->with(['contact:mobile,meta']) // Eager load contact with name from meta
         ->orderBy('created_at', 'desc');
 
     // Filter by status

@@ -14,6 +14,13 @@ import { Head, router, useForm } from '@inertiajs/vue3';
 import { Clock, MessageSquare, RefreshCw, Search } from 'lucide-vue-next';
 import { ref, watch } from 'vue';
 
+interface Contact {
+    mobile: string;
+    meta?: {
+        name?: string;
+    };
+}
+
 interface MessageLog {
     id: number;
     recipient: string;
@@ -24,6 +31,7 @@ interface MessageLog {
     failed_at: string | null;
     error_message: string | null;
     created_at: string;
+    contact?: Contact | null;
 }
 
 interface PaginatedLogs {
@@ -89,6 +97,13 @@ const formatPhone = (mobile: string) => {
         return mobile.replace('+63', '0');
     }
     return mobile;
+};
+
+const formatRecipient = (log: MessageLog) => {
+    const phone = formatPhone(log.recipient);
+    const contactName = log.contact?.meta?.name;
+    
+    return contactName ? `${contactName} (${phone})` : phone;
 };
 
 const formatDateTime = (date: string | null) => {
@@ -190,7 +205,7 @@ const retryMessage = (logId: number) => {
                                     From: {{ log.sender_id }}
                                 </span>
                                 <span class="text-xs text-muted-foreground">
-                                    To: {{ formatPhone(log.recipient) }}
+                                    To: {{ formatRecipient(log) }}
                                 </span>
                             </div>
 
