@@ -38,6 +38,7 @@ withDefaults(
                     >
                         Log in
                     </Link>
+                    <!-- Register button hidden but preserved for future use
                     <Link
                         v-if="canRegister"
                         :href="register()"
@@ -45,6 +46,7 @@ withDefaults(
                     >
                         Register
                     </Link>
+                    -->
                 </template>
             </nav>
         </header>
