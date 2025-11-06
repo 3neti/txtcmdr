@@ -2,6 +2,13 @@
 import { ref, computed } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
+
+interface Props {
+    senderIds: string[];
+    defaultSenderId: string;
+}
+
+const props = defineProps<Props>();
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,7 +26,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 const form = ref({
     recipients: '',
     message: '',
-    sender_id: 'cashless',
+    sender_id: props.defaultSenderId,
 });
 
 const errors = ref<Record<string, string>>({});
@@ -217,9 +224,9 @@ const handleSubmit = () => {
                                     v-model="form.sender_id"
                                     class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                                 >
-                                    <option value="cashless">cashless</option>
-                                    <option value="Quezon City">Quezon City</option>
-                                    <option value="TXTCMDR">TXTCMDR</option>
+                                    <option v-for="senderId in senderIds" :key="senderId" :value="senderId">
+                                        {{ senderId }}
+                                    </option>
                                 </select>
                             </div>
 

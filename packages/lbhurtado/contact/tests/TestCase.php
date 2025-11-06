@@ -3,8 +3,8 @@
 namespace LBHurtado\Contact\Tests;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Orchestra\Testbench\TestCase as BaseTestCase;
 use LBHurtado\Contact\Tests\Models\User;
+use Orchestra\Testbench\TestCase as BaseTestCase;
 
 abstract class TestCase extends BaseTestCase
 {
@@ -24,7 +24,7 @@ abstract class TestCase extends BaseTestCase
     {
         return [
             \LBHurtado\Contact\ContactServiceProvider::class,
-            \Spatie\SchemalessAttributes\SchemalessAttributesServiceProvider::class
+            \Spatie\SchemalessAttributes\SchemalessAttributesServiceProvider::class,
         ];
     }
 
@@ -47,9 +47,9 @@ abstract class TestCase extends BaseTestCase
         ]);
 
         // Run the migration from the local package
-        $userMigration = include __DIR__ . '/../database/migrations/test/0001_01_01_000000_create_users_table.php';
+        $userMigration = include __DIR__.'/../database/migrations/test/0001_01_01_000000_create_users_table.php';
         $userMigration->up();
-        $inputMigration = include __DIR__ . '/../database/migrations/test/2024_08_02_000000_create_inputs_table.php';
+        $inputMigration = include __DIR__.'/../database/migrations/test/2024_08_02_000000_create_inputs_table.php';
         $inputMigration->up();
     }
 
@@ -73,7 +73,7 @@ abstract class TestCase extends BaseTestCase
     {
         $this->app['config']->set(
             'contact',
-            require __DIR__ . '/../config/contact.php'
+            require __DIR__.'/../config/contact.php'
         );
     }
 }

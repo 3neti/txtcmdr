@@ -29,6 +29,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Available Sender IDs
+    |--------------------------------------------------------------------------
+    |
+    | This is a comma-separated list of sender IDs that users can choose from
+    | when sending SMS messages. These will populate dropdown menus.
+    |
+    */
+
+    'sender_ids' => array_map('trim', explode(',', env('SMS_SENDER_IDS', 'TXTCMDR'))),
+
+    /*
+    |--------------------------------------------------------------------------
     | SMS Drivers
     |--------------------------------------------------------------------------
     |

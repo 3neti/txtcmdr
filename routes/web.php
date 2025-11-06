@@ -70,7 +70,10 @@ Route::get('dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::get('send-sms', function () {
-    return Inertia::render('SendSMS');
+    return Inertia::render('SendSMS', [
+        'senderIds' => config('sms.sender_ids'),
+        'defaultSenderId' => config('sms.default_sender_id'),
+    ]);
 })->middleware(['auth', 'verified'])->name('sendSMS');
 
 Route::get('groups', function () {

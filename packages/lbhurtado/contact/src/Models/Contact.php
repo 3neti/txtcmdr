@@ -2,24 +2,25 @@
 
 namespace LBHurtado\Contact\Models;
 
-use LBHurtado\Contact\Traits\{HasAdditionalAttributes, HasMeta};
-use LBHurtado\Contact\Database\Factories\ContactFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use LBHurtado\Contact\Traits\HasBankAccount;
-use LBHurtado\Contact\Contracts\Bankable;
-use LBHurtado\Contact\Traits\HasMobile;
 use Illuminate\Database\Eloquent\Model;
+use LBHurtado\Contact\Contracts\Bankable;
+use LBHurtado\Contact\Database\Factories\ContactFactory;
+use LBHurtado\Contact\Traits\HasAdditionalAttributes;
+use LBHurtado\Contact\Traits\HasBankAccount;
+use LBHurtado\Contact\Traits\HasMeta;
+use LBHurtado\Contact\Traits\HasMobile;
 
 /**
  * Class Contact.
  *
- * @property int         $id
- * @property string      $mobile
- * @property string      $country
- * @property string      $bank_account
- * @property string      $bank_code
- * @property string      $account_number
- * @property string      $name
+ * @property int $id
+ * @property string $mobile
+ * @property string $country
+ * @property string $bank_account
+ * @property string $bank_code
+ * @property string $account_number
+ * @property string $name
  *
  * @method int getKey()
  */
@@ -28,8 +29,8 @@ class Contact extends Model implements Bankable
     use HasAdditionalAttributes;
     use HasBankAccount;
     use HasFactory;
-    use HasMobile;
     use HasMeta;
+    use HasMobile;
 
     protected $fillable = [
         'mobile',
@@ -38,7 +39,7 @@ class Contact extends Model implements Bankable
     ];
 
     protected $appends = [
-        'name'
+        'name',
     ];
 
     public static function booted(): void
@@ -52,9 +53,9 @@ class Contact extends Model implements Bankable
                 $defaultCode = config('contact.default.bank_code');
                 $contact->bank_account = "{$defaultCode}:{$contact->mobile}";
             }
-//            $contact->bank_account = ($contact->bank_account
-//                    ?: config('contact.default.bank_code'))
-//                . ':' . $contact->mobile;
+            //            $contact->bank_account = ($contact->bank_account
+            //                    ?: config('contact.default.bank_code'))
+            //                . ':' . $contact->mobile;
         });
     }
 

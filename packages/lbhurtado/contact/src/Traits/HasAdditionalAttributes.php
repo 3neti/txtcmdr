@@ -5,9 +5,13 @@ namespace LBHurtado\Contact\Traits;
 trait HasAdditionalAttributes
 {
     const NAME_FIELD = 'name';
+
     const EMAIL_FIELD = 'email';
+
     const BIRTH_DATE = 'birth_date';
+
     const ADDRESS_FIELD = 'address';
+
     const GROSS_MONTHLY_INCOME_FIELD = 'gross_monthly_income';
 
     public function initializeHasAdditionalAttributes(): void
