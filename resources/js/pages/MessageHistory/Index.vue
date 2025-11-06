@@ -16,6 +16,8 @@ import { ref, watch } from 'vue';
 
 interface Contact {
     mobile: string;
+    name?: string;
+    email?: string;
     meta?: {
         name?: string;
     };
@@ -101,7 +103,8 @@ const formatPhone = (mobile: string) => {
 
 const formatRecipient = (log: MessageLog) => {
     const phone = formatPhone(log.recipient);
-    const contactName = log.contact_with_name?.meta?.name;
+    // Name is appended directly on the contact object (from meta JSON column)
+    const contactName = log.contact_with_name?.name;
     
     return contactName ? `${contactName} (${phone})` : phone;
 };

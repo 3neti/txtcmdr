@@ -41,6 +41,8 @@ interface ScheduledMessage {
 
 interface Contact {
     mobile: string;
+    name?: string;
+    email?: string;
     meta?: {
         name?: string;
     };
@@ -110,7 +112,8 @@ const formatPhone = (mobile: string) => {
 
 const formatRecipient = (recipient: string, contact?: Contact | null) => {
     const phone = formatPhone(recipient);
-    const contactName = contact?.meta?.name;
+    // Name is appended directly on the contact object (from meta JSON column)
+    const contactName = contact?.name;
     
     return contactName ? `${contactName} (${phone})` : phone;
 };
