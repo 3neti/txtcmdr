@@ -94,8 +94,15 @@ class ScheduleMessage
             // Try to parse as phone number
             try {
                 $phone = new PhoneNumber($recipient, 'PH');
-                $contact = Contact::fromPhoneNumber($phone);
-                $numbers[] = $contact->e164_mobile;
+                $e164 = $phone->formatE164();
+
+                // Create/get contact and ensure it has country set
+                $contact = Contact::firstOrCreate(
+                    ['mobile' => $e164],
+                    ['country' => 'PH']
+                );
+
+                $numbers[] = $e164;
                 $totalCount++;
 
                 continue;
@@ -106,8 +113,14 @@ class ScheduleMessage
             // Try to find as contact by name
             $contact = Contact::where('meta->name', $recipient)->first();
             if ($contact) {
-                $numbers[] = $contact->e164_mobile;
-                $totalCount++;
+                // Safely get E.164 format - use our custom accessor
+                try {
+                    $e164 = (new \Propaganistas\LaravelPhone\PhoneNumber($contact->mobile, $contact->country ?? 'PH'))->formatE164();
+                    $numbers[] = $e164;
+                    $totalCount++;
+                } catch (\Exception $e) {
+                    // Skip invalid contact
+                }
 
                 continue;
             }
