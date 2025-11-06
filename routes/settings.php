@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\ProfileController;
+use App\Http\Controllers\Settings\SmsConfigController;
 use App\Http\Controllers\Settings\TwoFactorAuthenticationController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -25,4 +26,8 @@ Route::middleware('auth')->group(function () {
 
     Route::get('settings/two-factor', [TwoFactorAuthenticationController::class, 'show'])
         ->name('two-factor.show');
+
+    Route::get('settings/sms', [SmsConfigController::class, 'edit'])->name('sms-config.edit');
+    Route::put('settings/sms', [SmsConfigController::class, 'update'])->name('sms-config.update');
+    Route::delete('settings/sms', [SmsConfigController::class, 'destroy'])->name('sms-config.destroy');
 });

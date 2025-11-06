@@ -429,6 +429,24 @@ mobile,name,message
 - Error message display for failed messages
 - Toast notifications for all operations
 
+**Settings Pages** (`pages/settings/`):
+- **Profile**: Update name and email with email verification
+- **Password**: Change password with current password verification
+- **Two-Factor Auth**: Enable/disable 2FA with QR code setup
+- **SMS**: Configure EngageSPARK credentials (API key, org ID, sender IDs)
+  - User-specific SMS configuration with hybrid fallback
+  - API key and org ID stored encrypted in database
+  - Override application defaults or use app-wide config
+  - Active/inactive toggle to temporarily disable custom config
+  - Delete configuration to revert to app defaults
+- **Appearance**: Theme and appearance settings
+
+All settings pages follow the same pattern:
+- Route: `/settings/{page}`
+- Layout: `AppLayout` → `SettingsLayout` (with left nav menu)
+- Components: `HeadingSmall`, shadcn-vue form components
+- Actions: Wayfinder-generated form actions
+
 #### Directory Layout
 ```
 resources/js/
@@ -473,6 +491,18 @@ GET  /contacts               → List contacts
 GET  /scheduled-messages     → List scheduled messages
 GET  /message-history        → Message history with search/filter
 
+# Settings
+GET    /settings/profile       → Profile settings
+PATCH  /settings/profile       → Update profile
+DELETE /settings/profile       → Delete account
+GET    /settings/password      → Password settings
+PUT    /settings/password      → Update password
+GET    /settings/two-factor    → Two-factor auth settings
+GET    /settings/sms           → SMS configuration settings
+PUT    /settings/sms           → Update SMS configuration
+DELETE /settings/sms           → Delete SMS configuration
+GET    /settings/appearance    → Appearance settings
+
 # Actions
 POST   /sms/send             → Send SMS immediately
 POST   /sms/schedule         → Schedule SMS for later
@@ -511,7 +541,7 @@ POST   /message-logs/{id}/retry → Retry failed message
 - Tests use **Pest** (modern PHP testing framework)
 - Feature tests in `tests/Feature/` (with database)
 - Unit tests in `tests/Unit/` (isolated)
-- Note: RefreshDatabase is commented out in `tests/Pest.php` - uncomment when needed
+- `RefreshDatabase` trait enabled in `tests/Pest.php` for database tests
 - CI runs tests with GitHub Actions (`.github/workflows/tests.yml`)
 
 ## Key Conventions

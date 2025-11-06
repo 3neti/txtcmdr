@@ -1,0 +1,78 @@
+<?php
+
+namespace App\Http\Controllers\Settings;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Settings\UpdateSmsConfigRequest;
+use App\Models\UserSmsConfig;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
+
+class SmsConfigController extends Controller
+{
+    /**
+     * Display the SMS configuration settings form.
+     */
+    public function edit(Request $request): Response
+    {
+        $userConfig = $request->user()->smsConfig('engagespark');
+
+        return Inertia::render('settings/SmsConfig', [
+            'userConfig' => $userConfig ? [
+                'api_key' => '', // Don't send actual values for security
+                'org_id' => '',
+                'default_sender_id' => $userConfig->default_sender_id,
+                'sender_ids' => $userConfig->sender_ids ?? [],
+                'is_active' => $userConfig->is_active,
+                'has_credentials' => $userConfig->hasRequiredCredentials(),
+            ] : null,
+            'usesAppDefaults' => ! $userConfig || ! $userConfig->is_active,
+        ]);
+    }
+
+    /**
+     * Update the user's SMS configuration.
+     */
+    public function update(UpdateSmsConfigRequest $request)
+    {
+        $user = $request->user();
+
+        // Parse sender_ids if provided as comma-separated string
+        $senderIds = $request->input('sender_ids', []);
+        if (is_string($senderIds)) {
+            $senderIds = array_filter(
+                array_map('trim', explode(',', $senderIds)),
+                fn ($id) => ! empty($id)
+            );
+        }
+
+        UserSmsConfig::updateOrCreate(
+            [
+                'user_id' => $user->id,
+                'driver' => 'engagespark',
+            ],
+            [
+                'credentials' => [
+                    'api_key' => $request->input('api_key'),
+                    'org_id' => $request->input('org_id'),
+                ],
+                'default_sender_id' => $request->input('default_sender_id'),
+                'sender_ids' => $senderIds,
+                'is_active' => $request->boolean('is_active', true),
+            ]
+        );
+
+        return back()->with('status', 'sms-config-updated');
+    }
+
+    /**
+     * Delete the user's SMS configuration.
+     */
+    public function destroy(Request $request)
+    {
+        $request->user()->smsConfigs()->where('driver', 'engagespark')->delete();
+
+        return back()->with('status', 'sms-config-deleted');
+    }
+}
