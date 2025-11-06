@@ -141,6 +141,14 @@ Route::get('message-history', function (Request $request) {
     ]);
 })->middleware(['auth', 'verified'])->name('message-history.index');
 
+Route::get('message-history/export', function (Request $request) {
+    return \App\Actions\ExportMessageHistory::run(
+        auth()->id(),
+        $request->query('status', 'all'),
+        $request->query('search', '')
+    );
+})->middleware(['auth', 'verified'])->name('message-history.export');
+
 Route::get('bulk-operations', function () {
     $groups = \App\Models\Group::where('user_id', auth()->id())->get();
 

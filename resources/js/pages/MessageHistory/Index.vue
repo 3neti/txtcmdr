@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/select';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
-import { Clock, MessageSquare, RefreshCw, Search } from 'lucide-vue-next';
+import { Clock, Download, MessageSquare, RefreshCw, Search } from 'lucide-vue-next';
 import { ref, watch } from 'vue';
 
 interface Contact {
@@ -144,6 +144,20 @@ const retryMessage = (logId: number) => {
         },
     });
 };
+
+const exportToCSV = () => {
+    // Build export URL with current filters
+    const params = new URLSearchParams();
+    if (statusFilter.value !== 'all') {
+        params.append('status', statusFilter.value);
+    }
+    if (search.value) {
+        params.append('search', search.value);
+    }
+    
+    const url = `/message-history/export${params.toString() ? '?' + params.toString() : ''}`;
+    window.location.href = url;
+};
 </script>
 
 <template>
@@ -159,8 +173,18 @@ const retryMessage = (logId: number) => {
                         View all sent SMS messages
                     </p>
                 </div>
-                <div class="text-sm text-muted-foreground">
-                    {{ logs.total }} total message(s)
+                <div class="flex items-center gap-4">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        @click="exportToCSV"
+                    >
+                        <Download class="mr-2 h-4 w-4" />
+                        Export to CSV
+                    </Button>
+                    <div class="text-sm text-muted-foreground">
+                        {{ logs.total }} total message(s)
+                    </div>
                 </div>
             </div>
 
