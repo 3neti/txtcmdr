@@ -16,13 +16,42 @@ Route::get('/', function () {
 Route::get('dashboard', function () {
     $user = auth()->user();
 
+    // Message analytics
+    $totalMessages = \App\Models\MessageLog::where('user_id', $user->id)->count();
+    $sentMessages = \App\Models\MessageLog::where('user_id', $user->id)->sent()->count();
+    $failedMessages = \App\Models\MessageLog::where('user_id', $user->id)->failed()->count();
+    $todayMessages = \App\Models\MessageLog::where('user_id', $user->id)->today()->count();
+    $thisWeekMessages = \App\Models\MessageLog::where('user_id', $user->id)->thisWeek()->count();
+
+    // Success rate
+    $successRate = $totalMessages > 0 ? round(($sentMessages / $totalMessages) * 100, 1) : 0;
+
+    // Last 7 days chart data
+    $chartData = collect(range(6, 0))->map(function ($daysAgo) use ($user) {
+        $date = now()->subDays($daysAgo);
+        $count = \App\Models\MessageLog::where('user_id', $user->id)
+            ->whereDate('created_at', $date)
+            ->count();
+
+        return [
+            'date' => $date->format('M d'),
+            'count' => $count,
+        ];
+    });
+
     return Inertia::render('Dashboard', [
         'stats' => [
             'totalGroups' => \App\Models\Group::where('user_id', $user->id)->count(),
             'totalContacts' => \App\Models\Contact::count(),
             'scheduledMessages' => \App\Models\ScheduledMessage::where('status', 'pending')->count(),
-            'sentMessages' => \App\Models\ScheduledMessage::where('status', 'sent')->count(),
+            'totalMessages' => $totalMessages,
+            'sentMessages' => $sentMessages,
+            'failedMessages' => $failedMessages,
+            'todayMessages' => $todayMessages,
+            'thisWeekMessages' => $thisWeekMessages,
+            'successRate' => $successRate,
         ],
+        'chartData' => $chartData,
         'recentGroups' => \App\Models\Group::where('user_id', $user->id)
             ->withCount('contacts')
             ->latest()

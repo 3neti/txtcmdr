@@ -10,6 +10,16 @@ interface Stats {
     totalContacts: number;
     scheduledMessages: number;
     sentMessages: number;
+    totalMessages: number;
+    failedMessages: number;
+    todayMessages: number;
+    thisWeekMessages: number;
+    successRate: number;
+}
+
+interface ChartData {
+    date: string;
+    count: number;
 }
 
 interface Group {
@@ -31,6 +41,7 @@ interface ScheduledMessage {
 
 defineProps<{
     stats: Stats;
+    chartData: ChartData[];
     recentGroups: Group[];
     recentScheduled: ScheduledMessage[];
 }>();
@@ -153,6 +164,59 @@ const formatDate = (date: string) => {
                             </p>
                         </div>
                     </button>
+                </div>
+            </div>
+
+            <!-- Message Analytics -->
+            <div class="rounded-xl border bg-card p-6 shadow-sm">
+                <h2 class="mb-4 text-lg font-semibold">Message Analytics</h2>
+                
+                <!-- Stats Grid -->
+                <div class="mb-6 grid gap-4 md:grid-cols-4">
+                    <div class="flex flex-col">
+                        <span class="text-sm text-muted-foreground">Today</span>
+                        <span class="text-2xl font-bold">{{ stats.todayMessages }}</span>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-sm text-muted-foreground">This Week</span>
+                        <span class="text-2xl font-bold">{{ stats.thisWeekMessages }}</span>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-sm text-muted-foreground">Success Rate</span>
+                        <span class="text-2xl font-bold text-green-600">{{ stats.successRate }}%</span>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-sm text-muted-foreground">Failed</span>
+                        <span class="text-2xl font-bold text-red-600">{{ stats.failedMessages }}</span>
+                    </div>
+                </div>
+
+                <!-- Simple Bar Chart -->
+                <div>
+                    <h3 class="mb-3 text-sm font-medium text-muted-foreground">Last 7 Days</h3>
+                    <div class="flex items-end gap-2" style="height: 120px">
+                        <div
+                            v-for="(day, index) in chartData"
+                            :key="index"
+                            class="flex flex-1 flex-col items-center gap-2"
+                        >
+                            <div class="relative w-full">
+                                <div
+                                    class="w-full rounded-t-md bg-primary transition-all hover:bg-primary/80"
+                                    :style="{
+                                        height: day.count > 0 ? `${Math.max((day.count / Math.max(...chartData.map(d => d.count))) * 100, 10)}px` : '2px',
+                                        minHeight: '2px'
+                                    }"
+                                    :title="`${day.date}: ${day.count} messages`"
+                                >
+                                    <span v-if="day.count > 0" class="absolute -top-5 left-1/2 -translate-x-1/2 text-xs font-medium">
+                                        {{ day.count }}
+                                    </span>
+                                </div>
+                            </div>
+                            <span class="text-xs text-muted-foreground">{{ day.date }}</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
