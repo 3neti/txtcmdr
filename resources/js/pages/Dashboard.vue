@@ -3,7 +3,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
-import { Calendar, MessageSquare, Send, Users, UsersRound } from 'lucide-vue-next';
+import { AlertCircle, Calendar, MessageSquare, Send, Users, UsersRound } from 'lucide-vue-next';
 
 interface Stats {
     totalGroups: number;
@@ -39,11 +39,21 @@ interface ScheduledMessage {
     total_recipients: number;
 }
 
+interface FailedMessage {
+    id: number;
+    recipient: string;
+    message: string;
+    error_message: string | null;
+    failed_at: string;
+    sender_id: string;
+}
+
 defineProps<{
     stats: Stats;
     chartData: ChartData[];
     recentGroups: Group[];
     recentScheduled: ScheduledMessage[];
+    recentFailures: FailedMessage[];
 }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -81,6 +91,13 @@ const formatDate = (date: string) => {
         hour: '2-digit',
         minute: '2-digit',
     });
+};
+
+const formatPhone = (mobile: string) => {
+    if (mobile.startsWith('+63')) {
+        return mobile.replace('+63', '0');
+    }
+    return mobile;
 };
 </script>
 
@@ -215,6 +232,53 @@ const formatDate = (date: string) => {
                                 </div>
                             </div>
                             <span class="text-xs text-muted-foreground">{{ day.date }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Failed Messages Summary -->
+            <div v-if="recentFailures.length > 0" class="rounded-xl border border-red-200 bg-red-50 p-6 shadow-sm dark:border-red-900/50 dark:bg-red-950/20">
+                <div class="mb-4 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <AlertCircle class="h-5 w-5 text-red-600 dark:text-red-400" />
+                        <h2 class="text-lg font-semibold text-red-900 dark:text-red-100">
+                            Recent Failed Messages
+                        </h2>
+                    </div>
+                    <button
+                        @click="router.visit('/message-history?status=failed')"
+                        class="text-sm text-red-600 hover:underline dark:text-red-400"
+                    >
+                        View All
+                    </button>
+                </div>
+                <div class="space-y-3">
+                    <div
+                        v-for="failure in recentFailures"
+                        :key="failure.id"
+                        class="rounded-lg border border-red-200 bg-white p-3 dark:border-red-900/30 dark:bg-red-950/10"
+                    >
+                        <div class="flex items-start justify-between gap-4">
+                            <div class="flex-1 space-y-1">
+                                <div class="flex items-center gap-2 text-sm">
+                                    <span class="font-medium text-red-900 dark:text-red-100">
+                                        To: {{ formatPhone(failure.recipient) }}
+                                    </span>
+                                    <span class="text-xs text-red-600/70 dark:text-red-400/70">
+                                        From: {{ failure.sender_id }}
+                                    </span>
+                                </div>
+                                <p class="line-clamp-1 text-sm text-red-800 dark:text-red-200">
+                                    {{ failure.message }}
+                                </p>
+                                <p v-if="failure.error_message" class="text-xs text-red-600 dark:text-red-400">
+                                    Error: {{ failure.error_message }}
+                                </p>
+                            </div>
+                            <span class="shrink-0 text-xs text-red-600/70 dark:text-red-400/70">
+                                {{ formatDate(failure.failed_at) }}
+                            </span>
                         </div>
                     </div>
                 </div>

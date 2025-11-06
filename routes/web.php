@@ -61,6 +61,11 @@ Route::get('dashboard', function () {
             ->latest('scheduled_at')
             ->take(5)
             ->get(),
+        'recentFailures' => \App\Models\MessageLog::where('user_id', $user->id)
+            ->failed()
+            ->latest('failed_at')
+            ->take(5)
+            ->get(),
     ]);
 })->middleware(['auth', 'verified'])->name('dashboard');
 
@@ -148,24 +153,40 @@ Route::get('bulk-operations', function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     // SMS Actions
     Route::post('sms/send', function (Request $request) {
-        $result = SendToMultipleRecipients::run(
-            $request->input('recipients'),
-            $request->input('message'),
-            $request->input('sender_id')
-        );
+        try {
+            $result = SendToMultipleRecipients::run(
+                $request->input('recipients'),
+                $request->input('message'),
+                $request->input('sender_id')
+            );
 
-        return back()->with('success', 'Message sent successfully!');
+            $message = $result['count'] > 0
+                ? "Successfully queued {$result['count']} message(s)!"
+                : 'No valid recipients found.';
+
+            if ($result['invalid_count'] > 0) {
+                $message .= " ({$result['invalid_count']} invalid recipient(s) skipped)";
+            }
+
+            return back()->with('success', $message);
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to send message: '.$e->getMessage());
+        }
     })->name('sms.send');
 
     Route::post('sms/schedule', function (Request $request) {
-        $result = ScheduleMessage::run(
-            $request->input('recipients'),
-            $request->input('message'),
-            $request->input('scheduled_at'),
-            $request->input('sender_id')
-        );
+        try {
+            $result = ScheduleMessage::run(
+                $request->input('recipients'),
+                $request->input('message'),
+                $request->input('scheduled_at'),
+                $request->input('sender_id')
+            );
 
-        return back()->with('success', 'Message scheduled successfully!');
+            return back()->with('success', "Message scheduled for {$result->total_recipients} recipient(s)!");
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to schedule message: '.$e->getMessage());
+        }
     })->name('sms.schedule');
 
     // Group Actions
@@ -209,17 +230,23 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('contacts.store');
 
     Route::post('contacts/import', function (Request $request) {
-        $request->validate([
-            'file' => 'required|file|mimes:csv,xlsx,xls',
-            'group_id' => 'nullable|exists:groups,id',
-        ]);
+        try {
+            $request->validate([
+                'file' => 'required|file|mimes:csv,xlsx,xls',
+                'group_id' => 'nullable|exists:groups,id',
+            ]);
 
-        \App\Actions\Contacts\ImportContactsFromFile::run(
-            $request->file('file'),
-            $request->input('group_id')
-        );
+            \App\Actions\Contacts\ImportContactsFromFile::run(
+                $request->file('file'),
+                $request->input('group_id')
+            );
 
-        return back()->with('success', 'Contacts import started! Processing in background.');
+            return back()->with('success', 'Contacts import started! Processing in background.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return back()->withErrors($e->errors());
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to import contacts: '.$e->getMessage());
+        }
     })->name('contacts.import');
 
     Route::put('contacts/{id}', function (Request $request, int $id) {
@@ -284,37 +311,62 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Bulk Operations
     Route::post('bulk/send', function (Request $request) {
-        $request->validate([
-            'file' => 'required|file|mimes:csv,xlsx,xls',
-            'message' => 'required|string|max:1600',
-            'sender_id' => 'required|string',
-            'mobile_column' => 'nullable|string',
-        ]);
+        try {
+            $request->validate([
+                'file' => 'required|file|mimes:csv,xlsx,xls',
+                'message' => 'required|string|max:1600',
+                'sender_id' => 'required|string',
+                'mobile_column' => 'nullable|string',
+            ]);
 
-        $result = \App\Actions\SMS\BulkSendFromFile::run(
-            $request->file('file'),
-            $request->input('message'),
-            $request->input('sender_id'),
-            $request->input('mobile_column', 'mobile')
-        );
+            $result = \App\Actions\SMS\BulkSendFromFile::run(
+                $request->file('file'),
+                $request->input('message'),
+                $request->input('sender_id'),
+                $request->input('mobile_column', 'mobile')
+            );
 
-        return back()->with('success', "Bulk send started! {$result['queued']} messages queued.");
+            $message = "Bulk send started! {$result['queued']} message(s) queued.";
+            if ($result['invalid'] > 0) {
+                $message .= " ({$result['invalid']} invalid number(s) skipped)";
+            }
+
+            return back()->with('success', $message);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return back()->withErrors($e->errors());
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to process bulk send: '.$e->getMessage());
+        }
     })->name('bulk.send');
 
     Route::post('bulk/send-personalized', function (Request $request) {
-        $request->validate([
-            'file' => 'required|file|mimes:csv,xlsx,xls',
-            'sender_id' => 'required|string',
-            'import_contacts' => 'boolean',
-        ]);
+        try {
+            $request->validate([
+                'file' => 'required|file|mimes:csv,xlsx,xls',
+                'sender_id' => 'required|string',
+                'import_contacts' => 'boolean',
+            ]);
 
-        $result = \App\Actions\SMS\BulkSendPersonalized::run(
-            $request->file('file'),
-            $request->input('sender_id'),
-            $request->boolean('import_contacts')
-        );
+            $result = \App\Actions\SMS\BulkSendPersonalized::run(
+                $request->file('file'),
+                $request->input('sender_id'),
+                $request->boolean('import_contacts')
+            );
 
-        return back()->with('success', "Personalized bulk send started! {$result['queued']} messages queued.");
+            $message = "Personalized bulk send started! {$result['queued']} message(s) queued.";
+            if ($result['invalid'] > 0) {
+                $message .= " ({$result['invalid']} invalid row(s) skipped)";
+            }
+            if ($result['contacts_imported'] > 0) {
+                $message .= " {$result['contacts_imported']} contact(s) imported.";
+            }
+
+            return back()->with('success', $message);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return back()->withErrors($e->errors());
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to process personalized bulk send: '.$e->getMessage());
+        }
     })->name('bulk.send-personalized');
 });
 
