@@ -271,6 +271,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return back()->with('success', 'Scheduled message cancelled successfully!');
     })->name('scheduled.cancel');
 
+    // Message History Actions
+    Route::post('message-logs/{id}/retry', function (int $id) {
+        try {
+            \App\Actions\RetryFailedMessage::run($id);
+
+            return back()->with('success', 'Message queued for retry!');
+        } catch (\Exception $e) {
+            return back()->withErrors(['retry' => $e->getMessage()]);
+        }
+    })->name('message-logs.retry');
+
     // Bulk Operations
     Route::post('bulk/send', function (Request $request) {
         $request->validate([

@@ -10,8 +10,8 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { type BreadcrumbItem } from '@/types';
-import { Head, router } from '@inertiajs/vue3';
-import { Clock, MessageSquare, Search } from 'lucide-vue-next';
+import { Head, router, useForm } from '@inertiajs/vue3';
+import { Clock, MessageSquare, RefreshCw, Search } from 'lucide-vue-next';
 import { ref, watch } from 'vue';
 
 interface MessageLog {
@@ -116,6 +116,16 @@ const formatRelativeTime = (date: string) => {
     if (diffDays < 7) return `${diffDays}d ago`;
     return formatDateTime(date);
 };
+
+const retryMessage = (logId: number) => {
+    const form = useForm({});
+    form.post(`/message-logs/${logId}/retry`, {
+        preserveScroll: true,
+        onSuccess: () => {
+            // Message will be reloaded from server
+        },
+    });
+};
 </script>
 
 <template>
@@ -210,7 +220,19 @@ const formatRelativeTime = (date: string) => {
                             </div>
                         </div>
 
-                        <MessageSquare class="h-5 w-5 text-muted-foreground" />
+                        <div class="flex items-center gap-2">
+                            <!-- Retry button for failed messages -->
+                            <Button
+                                v-if="log.status === 'failed'"
+                                variant="outline"
+                                size="sm"
+                                @click="retryMessage(log.id)"
+                            >
+                                <RefreshCw class="mr-2 h-4 w-4" />
+                                Retry
+                            </Button>
+                            <MessageSquare class="h-5 w-5 text-muted-foreground" />
+                        </div>
                     </div>
                 </div>
             </div>
