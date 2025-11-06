@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Jobs\Middleware\CheckBlacklist;
 use App\Models\MessageLog;
+use App\Services\SmsConfigService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\InteractsWithQueue;
@@ -22,7 +23,8 @@ class SendSMSJob implements ShouldQueue
         public string $mobile,
         public string $message,
         public string $senderId = 'TXTCMDR',
-        public ?int $scheduledMessageId = null
+        public ?int $scheduledMessageId = null,
+        public ?int $userId = null
     ) {}
 
     /**
@@ -57,7 +59,20 @@ class SendSMSJob implements ShouldQueue
         ]);
 
         try {
-            // Send SMS
+            // Get user-specific or app-wide SMS config
+            $user = $this->userId ? \App\Models\User::find($this->userId) : null;
+            $smsConfigService = app(SmsConfigService::class);
+            $config = $smsConfigService->getEngageSparkConfig($user);
+
+            // Set runtime config for EngageSPARK
+            if ($config['api_key'] && $config['org_id']) {
+                config([
+                    'engagespark.api_key' => $config['api_key'],
+                    'engagespark.org_id' => $config['org_id'],
+                ]);
+            }
+
+            // Send SMS using resolved config
             SMS::channel('engagespark')
                 ->from($this->senderId)
                 ->to($this->mobile)

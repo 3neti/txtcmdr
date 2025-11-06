@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
@@ -49,5 +50,24 @@ class User extends Authenticatable
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Get the user's SMS configurations
+     */
+    public function smsConfigs(): HasMany
+    {
+        return $this->hasMany(UserSmsConfig::class);
+    }
+
+    /**
+     * Get the user's active SMS config for a specific driver
+     */
+    public function smsConfig(string $driver = 'engagespark'): ?UserSmsConfig
+    {
+        return $this->smsConfigs()
+            ->where('driver', $driver)
+            ->where('is_active', true)
+            ->first();
     }
 }

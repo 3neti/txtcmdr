@@ -34,7 +34,7 @@ class SendToMultipleRecipients
                 // Get E.164 format for SMS sending
                 $e164Mobile = $contact->e164_mobile;
 
-                SendSMSJob::dispatch($e164Mobile, $message, $senderId);
+                SendSMSJob::dispatch($e164Mobile, $message, $senderId, null, auth()->id());
 
                 $normalizedRecipients[] = $e164Mobile;
                 $dispatchedCount++;
