@@ -61,15 +61,13 @@ const features = [
                         >
                             Log in
                         </Link>
-                        <!-- Register button hidden but preserved for future use
                         <Link
                             v-if="canRegister"
                             :href="register()"
                             class="rounded-lg bg-blue-600 px-6 py-2 text-sm font-medium text-white transition hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
                         >
-                            Register
+                            Sign Up
                         </Link>
-                        -->
                     </template>
                 </nav>
             </div>

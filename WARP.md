@@ -179,6 +179,25 @@ This application uses **Inertia.js**, which bridges Laravel and Vue without need
 - Configuration in `config/fortify.php` and `app/Providers/FortifyServiceProvider.php`
 - Custom actions in `app/Actions/Fortify/` for user creation and password reset
 
+#### Registration with SMS Configuration
+The application supports configurable multi-step registration with optional SMS credentials:
+
+**Configuration Mode** (`REGISTRATION_SMS_CONFIG` in `.env`):
+- `optional` (default): Users can skip SMS config and use app defaults
+- `required`: Users must provide their own SMS credentials to register
+- `disabled`: SMS configuration step is completely hidden
+
+**Multi-Step Registration Flow:**
+1. **Step 1**: Basic account info (name, email, password)
+2. **Step 2**: SMS config (API key, org ID, sender IDs) - shown only if mode is not "disabled"
+
+**Implementation:**
+- `config/registration.php` - Registration configuration
+- `app/Actions/Fortify/CreateNewUser.php` - Handles user creation with conditional SMS config
+- `resources/js/pages/auth/Register.vue` - Multi-step registration UI with step indicator
+- SMS credentials encrypted and stored in `user_sms_configs` table
+- Seamless integration with existing hybrid SMS fallback system
+
 #### Route Organization
 - `routes/web.php` - Main application routes
 - `routes/settings.php` - User settings routes (profile, password, 2FA)
