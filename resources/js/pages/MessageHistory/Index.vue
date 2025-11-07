@@ -54,6 +54,8 @@ const props = defineProps<{
     logs: PaginatedLogs;
     currentStatus: string;
     searchQuery: string;
+    dateFrom?: string;
+    dateTo?: string;
 }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -63,6 +65,8 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const search = ref(props.searchQuery);
 const statusFilter = ref(props.currentStatus);
+const dateFrom = ref(props.dateFrom || '');
+const dateTo = ref(props.dateTo || '');
 
 // Debounced search
 let searchTimeout: NodeJS.Timeout;
@@ -77,12 +81,22 @@ watch(statusFilter, () => {
     applyFilters();
 });
 
+watch(dateFrom, () => {
+    applyFilters();
+});
+
+watch(dateTo, () => {
+    applyFilters();
+});
+
 const applyFilters = () => {
     router.get(
         '/message-history',
         {
             status: statusFilter.value,
             search: search.value,
+            date_from: dateFrom.value || undefined,
+            date_to: dateTo.value || undefined,
         },
         {
             preserveState: true,
@@ -161,6 +175,12 @@ const exportToCSV = () => {
     if (search.value) {
         params.append('search', search.value);
     }
+    if (dateFrom.value) {
+        params.append('date_from', dateFrom.value);
+    }
+    if (dateTo.value) {
+        params.append('date_to', dateTo.value);
+    }
 
     const url = `/message-history/export${params.toString() ? '?' + params.toString() : ''}`;
     window.location.href = url;
@@ -192,28 +212,48 @@ const exportToCSV = () => {
             </div>
 
             <!-- Filters -->
-            <div class="flex flex-col gap-4 sm:flex-row">
-                <div class="relative flex-1">
-                    <Search
-                        class="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground"
-                    />
-                    <Input
-                        v-model="search"
-                        placeholder="Search by recipient or message..."
-                        class="pl-9"
-                    />
+            <div class="flex flex-col gap-4">
+                <div class="flex flex-col gap-4 sm:flex-row">
+                    <div class="relative flex-1">
+                        <Search
+                            class="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+                        />
+                        <Input
+                            v-model="search"
+                            placeholder="Search by recipient or message..."
+                            class="pl-9"
+                        />
+                    </div>
+                    <Select v-model="statusFilter">
+                        <SelectTrigger class="w-full sm:w-[180px]">
+                            <SelectValue placeholder="Filter by status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Messages</SelectItem>
+                            <SelectItem value="sent">Sent</SelectItem>
+                            <SelectItem value="failed">Failed</SelectItem>
+                            <SelectItem value="pending">Pending</SelectItem>
+                        </SelectContent>
+                    </Select>
                 </div>
-                <Select v-model="statusFilter">
-                    <SelectTrigger class="w-full sm:w-[180px]">
-                        <SelectValue placeholder="Filter by status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">All Messages</SelectItem>
-                        <SelectItem value="sent">Sent</SelectItem>
-                        <SelectItem value="failed">Failed</SelectItem>
-                        <SelectItem value="pending">Pending</SelectItem>
-                    </SelectContent>
-                </Select>
+
+                <!-- Date Range Filters -->
+                <div class="flex flex-col gap-4 sm:flex-row">
+                    <div class="flex-1">
+                        <Input
+                            v-model="dateFrom"
+                            type="date"
+                            placeholder="From date"
+                        />
+                    </div>
+                    <div class="flex-1">
+                        <Input
+                            v-model="dateTo"
+                            type="date"
+                            placeholder="To date"
+                        />
+                    </div>
+                </div>
             </div>
 
             <!-- Messages List -->

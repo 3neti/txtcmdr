@@ -12,7 +12,7 @@ class ExportMessageHistory
 {
     use AsAction;
 
-    public function handle(int $userId, ?string $status = null, ?string $search = null)
+    public function handle(int $userId, ?string $status = null, ?string $search = null, ?string $dateFrom = null, ?string $dateTo = null)
     {
         // Build query with same filters as Message History page
         $query = MessageLog::query()
@@ -30,6 +30,14 @@ class ExportMessageHistory
                 $q->where('recipient', 'like', "%{$search}%")
                     ->orWhere('message', 'like', "%{$search}%");
             });
+        }
+
+        // Filter by date range
+        if ($dateFrom) {
+            $query->whereDate('created_at', '>=', $dateFrom);
+        }
+        if ($dateTo) {
+            $query->whereDate('created_at', '<=', $dateTo);
         }
 
         // Get all matching logs

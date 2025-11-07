@@ -136,6 +136,8 @@ Route::get('scheduled-messages', function (Request $request) {
 Route::get('message-history', function (Request $request) {
     $status = $request->query('status', 'all');
     $search = $request->query('search', '');
+    $dateFrom = $request->query('date_from');
+    $dateTo = $request->query('date_to');
 
     $query = \App\Models\MessageLog::query()
         ->where('user_id', auth()->id())
@@ -154,12 +156,22 @@ Route::get('message-history', function (Request $request) {
         });
     }
 
+    // Filter by date range
+    if ($dateFrom) {
+        $query->whereDate('created_at', '>=', $dateFrom);
+    }
+    if ($dateTo) {
+        $query->whereDate('created_at', '<=', $dateTo);
+    }
+
     $logs = $query->paginate(20);
 
     return Inertia::render('MessageHistory/Index', [
         'logs' => $logs,
         'currentStatus' => $status,
         'searchQuery' => $search,
+        'dateFrom' => $dateFrom,
+        'dateTo' => $dateTo,
     ]);
 })->middleware(['auth', 'verified'])->name('message-history.index');
 
@@ -167,7 +179,9 @@ Route::get('message-history/export', function (Request $request) {
     return \App\Actions\ExportMessageHistory::run(
         auth()->id(),
         $request->query('status', 'all'),
-        $request->query('search', '')
+        $request->query('search', ''),
+        $request->query('date_from'),
+        $request->query('date_to')
     );
 })->middleware(['auth', 'verified'])->name('message-history.export');
 

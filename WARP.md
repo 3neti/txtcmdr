@@ -194,7 +194,9 @@ The application supports configurable multi-step registration with optional SMS 
 **Implementation:**
 - `config/registration.php` - Registration configuration
 - `app/Actions/Fortify/CreateNewUser.php` - Handles user creation with conditional SMS config
-- `resources/js/pages/auth/Register.vue` - Multi-step registration UI with step indicator
+- `resources/js/pages/auth/Register.vue` - Multi-step registration UI with step indicator and progress indicator
+- **TagInput integration**: Same sender ID management UI as Settings page
+- Field order matches Settings: API Key → Org ID → Sender IDs (TagInput) → Default Sender ID (Select)
 - SMS credentials encrypted and stored in `user_sms_configs` table
 - Seamless integration with existing hybrid SMS fallback system
 
@@ -225,6 +227,11 @@ class Contact extends BaseContact
     // Schemaless attributes (stored in 'meta' JSON column):
     // - name, email, address, birth_date, gross_monthly_income
     
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+    
     public function groups(): BelongsToMany
     {
         return $this->belongsToMany(Group::class)->withTimestamps();
@@ -232,11 +239,24 @@ class Contact extends BaseContact
 }
 ```
 
+**Multi-Tenancy:**
+- Every contact is owned by a specific user (enforced with `user_id` foreign key)
+- Users can only see and manage their own contacts
+- Two users can have contacts with the same phone number but different names (personal contact books)
+- Unique constraint: `['user_id', 'mobile']` prevents duplicate contacts per user
+
+**Phone Number Normalization:**
+- All phone numbers stored in **E.164 format** (e.g., `+639173011987`)
+- Consistent normalization using `propaganistas/laravel-phone` package
+- Normalization happens at all entry points: contact creation, SMS sending, import, scheduled messages
+- Database migration ensures all existing contacts are normalized
+
 **Usage Examples:**
 ```php
 // Creating contacts with schemaless attributes
 $contact = Contact::create([
     'mobile' => '+639173011987',
+    'user_id' => auth()->id(),
     'name' => 'John Doe',        // Stored in meta JSON
     'email' => 'john@example.com', // Stored in meta JSON
 ]);
@@ -250,6 +270,18 @@ $contact->address = '123 Main St';
 $contact->birth_date = '1990-01-01';
 $contact->gross_monthly_income = 50000;
 $contact->save();
+
+// Phone number normalization (consistent across all code)
+use Propaganistas\LaravelPhone\PhoneNumber;
+
+$phone = new PhoneNumber('09173011987', 'PH');
+$e164 = $phone->formatE164();  // "+639173011987"
+
+// Finding/creating contacts with normalized numbers
+$contact = Contact::firstOrCreate(
+    ['mobile' => $e164, 'user_id' => auth()->id()],
+    ['country' => 'PH', 'name' => 'John Doe']
+);
 
 // Phone number helpers from package
 $contact = Contact::fromPhoneNumber('+639173011987');
@@ -300,11 +332,18 @@ POST   /api/sms/bulk-send-personalized     → BulkSendPersonalized
 ```
 
 **Database Schema:**
-- `contacts` - Base table with mobile, country, bank_account, **meta (JSON)**
-- `groups` - Named groups with user_id ownership
+- `contacts` - Base table with **user_id**, mobile (E.164), country, bank_account, **meta (JSON)**
+  - Unique constraint: `['user_id', 'mobile']`
+  - Foreign key: `user_id` → `users.id` (cascade on delete)
+- `groups` - Named groups with **user_id** ownership
+  - Foreign key: `user_id` → `users.id` (cascade on delete)
 - `contact_group` - Many-to-many pivot
 - `blacklisted_numbers` - Phone numbers to exclude from broadcasts
-- `scheduled_messages` - SMS scheduling with recipient_type, recipient_data, status tracking
+- `scheduled_messages` - SMS scheduling with **user_id**, recipient_type, recipient_data, status tracking
+  - Foreign key: `user_id` → `users.id` (cascade on delete)
+- `message_logs` - Audit trail with **user_id**, recipient, message, sender_id, status, timestamps
+  - Foreign key: `user_id` → `users.id` (cascade on delete)
+  - Tracks WHO sent WHAT to WHOM, WHEN, and whether it succeeded
 
 **Configuration:**
 - `.env` - SMS_DRIVER, SMS_DEFAULT_SENDER_ID, ENGAGESPARK credentials
@@ -319,6 +358,9 @@ POST   /api/sms/bulk-send-personalized     → BulkSendPersonalized
 - Edit or cancel scheduled messages before sending
 - Automatic processing via Laravel scheduler (runs every minute)
 - Status tracking: pending → processing → sent
+- **Multi-tenant**: Users can only see and manage their own scheduled messages
+- **Phone normalization**: All recipients normalized to E.164 before storage
+- **User context preserved**: ProcessScheduledMessage passes user_id to SendSMSJob for credential retrieval
 
 **Usage:**
 ```php
@@ -327,7 +369,8 @@ ScheduleMessage::run(
     recipients: ['09173011987', '09178251991'],
     message: 'Reminder: Your appointment is tomorrow',
     scheduledAt: '2025-11-06 10:00:00',
-    senderId: 'Quezon City'
+    senderId: 'Quezon City',
+    userId: auth()->id()  // Required for multi-tenancy
 );
 ```
 
@@ -336,6 +379,12 @@ ScheduleMessage::run(
 // routes/console.php
 Schedule::command('messages:process-scheduled')->everyMinute();
 ```
+
+**Implementation Notes:**
+- Recipients parsed and normalized before storing in `recipient_data` JSON
+- `ProcessScheduledMessage` retrieves scheduled message and dispatches `SendSMSJob` for each recipient
+- `SendSMSJob` receives both `scheduled_message_id` and `user_id` to properly log and authenticate
+- Failed scheduled messages can be identified and retried from Message History
 
 #### Bulk Import & Personalized Messaging (Phase 3)
 
@@ -440,13 +489,28 @@ mobile,name,message
 - View all sent messages with comprehensive logging
 - Search by recipient or message content
 - Filter by status: All, Sent, Failed, Pending
+- **Date Range Filtering**: Filter by From Date and To Date for audit reports
 - Display contact names alongside phone numbers (smart lookup)
 - Pagination (20 messages per page)
-- **Export to CSV**: Export filtered message history with current search/filter
+- **Export to CSV**: Export filtered message history with current search/filter/date range
 - **Retry Failed Messages**: One-click retry button with authorization checks
 - Timestamps for sent/failed/created dates
 - Error message display for failed messages
 - Toast notifications for all operations
+
+**Audit & Reporting:**
+- Complete audit trail in `message_logs` table tracks:
+  - **WHO**: `user_id` (which user sent the message)
+  - **WHAT**: `message` content
+  - **TO WHOM**: `recipient` (E.164 phone number)
+  - **WHEN**: `sent_at`, `failed_at`, `created_at` timestamps
+  - **HOW**: `sender_id` (official SMS sender identifier)
+  - **RESULT**: `status` (sent/failed/pending), `error_message` if failed
+  - **CAMPAIGN**: `scheduled_message_id` links to bulk/scheduled campaigns
+- Date range filtering for compliance and accountability reports
+- CSV export includes all audit fields for external analysis
+- User-specific isolation: Each user can only see their own message history
+- Failed message retry preserves audit trail with new log entry
 
 **Settings Pages** (`pages/settings/`):
 - **Profile**: Update name and email with email verification
@@ -454,6 +518,9 @@ mobile,name,message
 - **Two-Factor Auth**: Enable/disable 2FA with QR code setup
 - **SMS**: Configure EngageSPARK credentials (API key, org ID, sender IDs)
   - User-specific SMS configuration with hybrid fallback
+  - **Optional credentials**: Leave API key/org ID blank to keep current (helper text included)
+  - **TagInput component**: Add/remove sender IDs with Enter/comma, dismiss with X button
+  - Field order: API Key → Org ID → Sender IDs (TagInput) → Default Sender ID (Select)
   - API key and org ID stored encrypted in database
   - Override application defaults or use app-wide config
   - Active/inactive toggle to temporarily disable custom config
@@ -534,9 +601,15 @@ POST   /contacts/import      → Import contacts from CSV
 POST   /bulk/send            → Bulk send from file
 POST   /bulk/send-personalized → Personalized bulk send
 POST   /scheduled-messages/{id}/cancel → Cancel scheduled message
-GET    /message-history/export → Export message history to CSV
+GET    /message-history/export → Export message history to CSV (with date_from/date_to params)
 POST   /message-logs/{id}/retry → Retry failed message
 ```
+
+**Multi-Tenancy Notes:**
+- All routes automatically filter by `auth()->id()` to ensure user isolation
+- Users cannot access other users' contacts, groups, scheduled messages, or message logs
+- Database enforces foreign key constraints with cascade on delete
+- Phone numbers normalized to E.164 at all entry points for consistency
 
 #### Wayfinder Integration
 **Laravel Wayfinder** auto-generates type-safe route helpers from Laravel routes:
