@@ -123,6 +123,12 @@ Route::get('contacts', function () {
     ]);
 })->middleware(['auth', 'verified'])->name('contacts.index');
 
+Route::get('contacts/{id}/messages', function (int $id) {
+    return response()->json(
+        \App\Actions\Contacts\GetContactMessages::run($id)
+    );
+})->middleware(['auth', 'verified'])->name('contacts.messages');
+
 Route::get('scheduled-messages', function (Request $request) {
     $status = $request->query('status', 'all');
     $messages = \App\Actions\ListScheduledMessages::run($status);

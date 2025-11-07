@@ -301,6 +301,7 @@ echo $contact->e164_mobile; // "+639173011987"
 - `SendToMultipleRecipients` - Send SMS to multiple phone numbers
 - `SendToMultipleGroups` - Broadcast SMS to multiple groups
 - `CreateGroup`, `ListGroups`, `GetGroup`, `DeleteGroup` - Group management
+- `GetContactMessages` - Get message history for a specific contact
 - `ScheduleMessage` - Schedule SMS for future delivery
 - `UpdateScheduledMessage`, `CancelScheduledMessage`, `ListScheduledMessages` - Scheduled message management
 - `BulkSendFromFile` - Send SMS to all numbers in CSV/XLSX
@@ -473,6 +474,15 @@ mobile,name,message
 - List all contacts with search/filter
 - Create/edit/delete contacts
 - **Edit contacts**: Double-click row or click edit icon
+- **View Message History**: Click MessageSquare icon to see conversation thread with contact
+  - Modal dialog shows recent messages (up to 50)
+  - Chronological message list with status badges
+  - Relative timestamps ("2 hours ago", "Yesterday")
+  - Sender ID display for each message
+  - Error messages for failed SMS
+  - Retry button for failed messages
+  - Empty state for contacts with no messages
+  - Uses E.164 format for accurate message matching
 - Mobile field with lock/unlock toggle (focus on name by default)
 - Import contacts from CSV (also available in Bulk Operations)
 - Assign contacts to groups
@@ -538,14 +548,17 @@ All settings pages follow the same pattern:
 resources/js/
 ├── actions/              # Wayfinder route helpers (organized by namespace)
 ├── components/           # Reusable Vue components
+│   ├── MessageHistoryDialog.vue  # Contact message history modal
 │   └── ui/              # Shadcn-vue UI components
 │       ├── alert/       # Alert components
 │       ├── alert-dialog/# Confirmation dialogs
+│       ├── badge/       # Status badges
 │       ├── button/      # Button variants
 │       ├── card/        # Card components
 │       ├── dialog/      # Modal dialogs
 │       ├── input/       # Form inputs
 │       ├── label/       # Form labels
+│       ├── scroll-area/ # Scrollable containers
 │       ├── select/      # Dropdown selects
 │       └── textarea/    # Multi-line text inputs
 ├── composables/          # Vue composition API utilities
@@ -574,6 +587,7 @@ GET  /bulk-operations        → Bulk operations page
 GET  /groups                 → List groups
 GET  /groups/{id}            → View group details
 GET  /contacts               → List contacts
+GET  /contacts/{id}/messages → Get message history for contact (JSON)
 GET  /scheduled-messages     → List scheduled messages
 GET  /message-history        → Message history with search/filter
 

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import MessageHistoryDialog from '@/components/MessageHistoryDialog.vue';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -32,6 +33,7 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import {
     Lock,
+    MessageSquare,
     Pencil,
     Plus,
     Trash2,
@@ -70,8 +72,10 @@ const showCreateDialog = ref(false);
 const showEditDialog = ref(false);
 const showImportDialog = ref(false);
 const showDeleteDialog = ref(false);
+const showMessageHistory = ref(false);
 const contactToDelete = ref<Contact | null>(null);
 const contactToEdit = ref<Contact | null>(null);
+const contactForHistory = ref<number | null>(null);
 const searchQuery = ref('');
 const isMobileUnlocked = ref(false);
 
@@ -185,6 +189,11 @@ const formatDate = (date: string) => {
         day: 'numeric',
     });
 };
+
+const openMessageHistory = (contact: Contact) => {
+    contactForHistory.value = contact.id;
+    showMessageHistory.value = true;
+};
 </script>
 
 <template>
@@ -267,6 +276,14 @@ const formatDate = (date: string) => {
                             </div>
                         </div>
                         <div class="flex gap-1">
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                class="opacity-0 transition-opacity group-hover:opacity-100"
+                                @click.stop="openMessageHistory(contact)"
+                            >
+                                <MessageSquare class="h-4 w-4" />
+                            </Button>
                             <Button
                                 variant="ghost"
                                 size="icon"
@@ -557,5 +574,11 @@ const formatDate = (date: string) => {
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
+
+        <!-- Message History Dialog -->
+        <MessageHistoryDialog
+            v-model:open="showMessageHistory"
+            :contact-id="contactForHistory"
+        />
     </AppLayout>
 </template>
