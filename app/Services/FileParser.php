@@ -32,7 +32,7 @@ class FileParser
 
     private function parseCsv(UploadedFile $file): array
     {
-        $csv = Reader::createFromPath($file->getRealPath());
+        $csv = Reader::from($file->getRealPath());
         $csv->setHeaderOffset(0); // First row is header
 
         return iterator_to_array($csv->getRecords());
@@ -40,7 +40,7 @@ class FileParser
 
     private function parseCsvFromPath(string $path): array
     {
-        $csv = Reader::createFromPath($path);
+        $csv = Reader::from($path);
         $csv->setHeaderOffset(0);
 
         return iterator_to_array($csv->getRecords());

@@ -18,6 +18,7 @@ class ContactImportJob implements ShouldQueue
 
     public function __construct(
         public string $filePath,
+        public int $userId,
         public ?int $groupId = null,
         public array $columnMapping = []
     ) {}
@@ -45,6 +46,7 @@ class ContactImportJob implements ShouldQueue
                     'mobile' => $mobile,
                     'name' => $row['name'] ?? null,
                     'email' => $row['email'] ?? null,
+                    'user_id' => $this->userId,
                 ]);
 
                 if ($contact && $this->groupId) {

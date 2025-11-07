@@ -14,6 +14,7 @@ class ImportContactsFromFile
 
     public function handle(
         UploadedFile $file,
+        int $userId,
         ?int $groupId = null,
         array $columnMapping = []
     ): array {
@@ -21,7 +22,7 @@ class ImportContactsFromFile
         $path = $file->store('imports', 'local');
 
         // Dispatch job for async processing
-        ContactImportJob::dispatch($path, $groupId, $columnMapping);
+        ContactImportJob::dispatch($path, $userId, $groupId, $columnMapping);
 
         return [
             'status' => 'queued',
@@ -43,6 +44,7 @@ class ImportContactsFromFile
     {
         $result = $this->handle(
             $request->file('file'),
+            $request->user()->id,
             $request->group_id,
             $request->column_mapping ?? []
         );
