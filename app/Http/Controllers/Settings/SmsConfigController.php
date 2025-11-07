@@ -20,8 +20,9 @@ class SmsConfigController extends Controller
 
         return Inertia::render('settings/SmsConfig', [
             'userConfig' => $userConfig ? [
-                'api_key' => '', // Don't send actual values for security
-                'org_id' => '',
+                // Send masked versions as placeholders for visibility
+                'api_key_masked' => $userConfig->hasRequiredCredentials() ? '••••••••' . substr($userConfig->getCredential('api_key'), -4) : null,
+                'org_id_masked' => $userConfig->hasRequiredCredentials() ? '••••••••' . substr($userConfig->getCredential('org_id'), -4) : null,
                 'default_sender_id' => $userConfig->default_sender_id,
                 'sender_ids' => $userConfig->sender_ids ?? [],
                 'is_active' => $userConfig->is_active,

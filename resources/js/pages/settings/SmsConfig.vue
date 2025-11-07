@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Checkbox } from '@/components/ui/checkbox';
 import AppLayout from '@/layouts/AppLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
 import { edit } from '@/routes/sms-config';
@@ -14,8 +13,8 @@ import { Form, Head } from '@inertiajs/vue3';
 import { type BreadcrumbItem } from '@/types';
 
 interface UserConfig {
-    api_key: string;
-    org_id: string;
+    api_key_masked: string | null;
+    org_id_masked: string | null;
     default_sender_id: string;
     sender_ids: string[];
     is_active: boolean;
@@ -49,11 +48,9 @@ const breadcrumbItems: BreadcrumbItem[] = [
                 />
 
                 <!-- Status Alert -->
-                <Alert v-if="usesAppDefaults" variant="default">
+                <Alert v-if="!userConfig?.has_credentials" variant="default">
                     <AlertDescription>
-                        You are currently using the application's default SMS
-                        configuration. Add your own credentials below to
-                        override the defaults.
+                        Please configure your SMS credentials to start sending messages.
                     </AlertDescription>
                 </Alert>
 
@@ -73,11 +70,21 @@ const breadcrumbItems: BreadcrumbItem[] = [
                             name="api_key"
                             type="password"
                             class="mt-1 block w-full"
-                            placeholder="Enter your EngageSPARK API Key"
+                            :placeholder="
+                                userConfig?.api_key_masked ||
+                                'Enter your EngageSPARK API Key'
+                            "
                             required
                             autocomplete="off"
                         />
                         <InputError :message="errors.api_key" />
+                        <p
+                            v-if="userConfig?.api_key_masked"
+                            class="text-sm text-muted-foreground"
+                        >
+                            Current: {{ userConfig.api_key_masked }} (enter new
+                            key to change)
+                        </p>
                     </div>
 
                     <!-- Organization ID -->
@@ -90,11 +97,21 @@ const breadcrumbItems: BreadcrumbItem[] = [
                             name="org_id"
                             type="password"
                             class="mt-1 block w-full"
-                            placeholder="Enter your EngageSPARK Organization ID"
+                            :placeholder="
+                                userConfig?.org_id_masked ||
+                                'Enter your EngageSPARK Organization ID'
+                            "
                             required
                             autocomplete="off"
                         />
                         <InputError :message="errors.org_id" />
+                        <p
+                            v-if="userConfig?.org_id_masked"
+                            class="text-sm text-muted-foreground"
+                        >
+                            Current: {{ userConfig.org_id_masked }} (enter new
+                            ID to change)
+                        </p>
                     </div>
 
                     <!-- Default Sender ID -->
@@ -134,17 +151,8 @@ const breadcrumbItems: BreadcrumbItem[] = [
                         </p>
                     </div>
 
-                    <!-- Active Checkbox -->
-                    <div class="flex items-center space-x-2">
-                        <Checkbox
-                            id="is_active"
-                            name="is_active"
-                            :default-checked="userConfig?.is_active ?? true"
-                        />
-                        <Label for="is_active" class="cursor-pointer">
-                            Use my custom SMS configuration
-                        </Label>
-                    </div>
+                    <!-- Hidden input to always submit active=true -->
+                    <input type="hidden" name="is_active" value="1" />
 
                     <!-- Actions -->
                     <div class="flex items-center gap-4">
@@ -178,7 +186,7 @@ const breadcrumbItems: BreadcrumbItem[] = [
                 >
                     <HeadingSmall
                         title="Delete SMS Configuration"
-                        description="Remove your custom SMS credentials and revert to application defaults"
+                        description="Remove your SMS credentials. You will need to reconfigure to send messages."
                     />
                     <Form
                         v-bind="SmsConfigController.destroy.form()"
