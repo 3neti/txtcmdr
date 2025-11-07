@@ -1,24 +1,32 @@
 # Text Commander (txtcmdr)
 
-A modern SMS broadcasting system built with Laravel 12 and Vue 3 for sending targeted messages to groups of contacts.
+**Version 1.0.0**
+
+A modern, multi-tenant SMS broadcasting system built with Laravel 12 and Vue 3 for sending targeted messages to groups of contacts with comprehensive audit trails and user-specific configurations.
 
 ## Features
 
 ### Core Functionality
+- **Multi-Tenancy** - Complete user isolation with per-user SMS credentials and data
 - **SMS Broadcasting** - Send messages to individuals, groups, or bulk recipients
-- **Contact Management** - Organize contacts with groups and custom attributes
+- **Contact Management** - Organize contacts with groups, custom attributes, and conversation history
 - **Scheduled Messages** - Schedule SMS for future delivery with full management
-- **Message History** - Complete audit trail with search, filters, and CSV export
+- **Message History** - Complete audit trail with search, filters, date ranges, and CSV export
 - **Bulk Operations** - Import contacts and send personalized bulk messages from CSV/Excel
 
 ### Advanced Features
+- **Contact Detail Page** - Comprehensive view with stats, message timeline, and quick send form
+- **Message History Modal** - Quick peek at conversation history without navigation
+- **User-Specific SMS Config** - Each user can configure their own EngageSPARK credentials
+- **Hybrid SMS Fallback** - CLI commands use .env config, web users use personal config
 - **Smart Contact Lookup** - Display contact names alongside phone numbers
 - **Failed Message Retry** - One-click retry for failed SMS with authorization checks
 - **Real-time Analytics** - Dashboard with message stats, 7-day activity chart, and failed message summaries
-- **Toast Notifications** - Real-time feedback for all operations (vue-sonner)
-- **Error Tracking** - Comprehensive logging with detailed error messages and context
+- **Date Range Filtering** - Filter message history by date range for compliance reports
+- **Phone Number Normalization** - All numbers stored in E.164 format for consistency
+- **Two-Factor Authentication** - Secure account access with 2FA support
 - **Quick Schedule** - Incremental time buttons (+1 min, +5 mins, +1 hour, +1 day, etc.)
-- **CSV Export** - Export message history with filters to CSV
+- **CSV Export** - Export message history with all filters and date ranges
 - **Configurable UI** - Customizable placeholders and sender IDs via environment variables
 
 ## Tech Stack
@@ -109,8 +117,18 @@ QUEUE_CONNECTION=database
 After seeding:
 - **Email**: admin@disburse.cash
 - **Password**: password
+- **SMS Config**: Automatically configured from .env if credentials are present
 
 ## Usage
+
+### User Configuration
+
+Each user must configure their own SMS credentials:
+
+1. **During Registration** (if `REGISTRATION_SMS_CONFIG` is enabled)
+2. **Settings → SMS** page after login
+
+The seeder automatically configures admin user from `.env` credentials if present.
 
 ### Sending SMS
 
@@ -145,14 +163,32 @@ mobile,name,message
 09178251991,Maria,"Hello {{name}}, welcome!"
 ```
 
-### Message History
+### Contact Management
+
+#### Contact Detail Page (`/contacts/{id}`)
+- **Single click contact** → Navigate to comprehensive detail view
+- **Header**: Avatar, name, phone, group badges, edit button
+- **Stats Cards**: Total messages, success rate, failed count, last message time
+- **Quick Send Form**: Send SMS directly to contact
+- **Message Timeline**: Paginated history (20 per page) with status filters
+- **Retry Failed**: One-click retry for failed messages
+
+#### Quick Message History Modal
+- **MessageSquare icon** → Quick peek without navigation
+- Shows up to 50 recent messages
+- Status badges, relative timestamps, error messages
+- Retry button for failed messages
+
+### Message History & Audit
 
 - View all sent messages with status (sent/failed/pending)
 - Search by recipient or message content
 - Filter by status (all/sent/failed/pending)
-- Export to CSV with current filters
+- **Date Range Filtering**: Filter by From/To dates for compliance reports
+- Export to CSV with all filters (search, status, date range)
 - Retry failed messages with one click
 - View contact names alongside phone numbers
+- Complete audit trail: WHO sent WHAT to WHOM, WHEN, HOW, and RESULT
 
 ### UI Customization
 
@@ -343,11 +379,13 @@ See [WARP.md](WARP.md) for detailed development and deployment guide.
 
 The project includes comprehensive test coverage:
 
-- **49 tests** with **148 assertions**
+- **126 tests** passing with **481 assertions**
 - Feature tests for all SMS workflows
+- Multi-tenancy and user isolation tests
 - Job execution and status tracking
 - Bulk operations and file parsing
 - Retry mechanism and authorization
+- Phone number normalization tests
 
 ## Contributing
 
