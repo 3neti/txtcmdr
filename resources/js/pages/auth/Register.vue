@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
-import { Checkbox } from '@/components/ui/checkbox';
 import AuthBase from '@/layouts/AuthLayout.vue';
 import { login } from '@/routes';
 import { store } from '@/routes/register';
@@ -20,7 +19,6 @@ interface Props {
 const props = defineProps<Props>();
 
 const step = ref(1);
-const smsIsActive = ref(true);
 
 // Computed properties based on mode
 const showSmsStep = computed(() => props.smsConfigMode !== 'disabled');
@@ -228,41 +226,18 @@ const goBackToBasicInfo = () => {
                     </p>
                 </div>
 
-                <div class="flex items-center space-x-2">
-                    <Checkbox
-                        id="sms_is_active"
-                        :checked="smsIsActive"
-                        @update:checked="(value) => (smsIsActive = value)"
-                    />
-                    <input
-                        type="hidden"
-                        name="sms_is_active"
-                        :value="smsIsActive ? '1' : '0'"
-                    />
-                    <Label for="sms_is_active" class="cursor-pointer">
-                        Use my custom SMS configuration
-                    </Label>
-                </div>
+                <!-- Hidden input to always submit active=true -->
+                <input type="hidden" name="sms_is_active" value="1" />
 
                 <div class="mt-2 flex gap-3">
                     <Button
                         type="submit"
-                        class="flex-1"
+                        class="w-full"
                         :disabled="processing"
                         data-test="register-user-button"
                     >
                         <Spinner v-if="processing" />
                         Complete Registration
-                    </Button>
-
-                    <Button
-                        v-if="canSkipSms"
-                        type="submit"
-                        variant="ghost"
-                        class="flex-1"
-                        :disabled="processing"
-                    >
-                        Skip - Use Shared Account
                     </Button>
                 </div>
 
