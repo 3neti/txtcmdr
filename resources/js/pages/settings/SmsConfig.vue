@@ -8,6 +8,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import AppLayout from '@/layouts/AppLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
 import { edit } from '@/routes/sms-config';
@@ -31,6 +38,7 @@ interface Props {
 const props = defineProps<Props>();
 
 const senderIds = ref<string[]>(props.userConfig?.sender_ids ?? []);
+const defaultSenderId = ref<string>(props.userConfig?.default_sender_id ?? '');
 
 const breadcrumbItems: BreadcrumbItem[] = [
     {
@@ -118,27 +126,9 @@ const breadcrumbItems: BreadcrumbItem[] = [
                         </p>
                     </div>
 
-                    <!-- Default Sender ID -->
+                    <!-- Sender IDs (define all first) -->
                     <div class="grid gap-2">
-                        <Label for="default_sender_id"
-                            >Default Sender ID *</Label
-                        >
-                        <Input
-                            id="default_sender_id"
-                            name="default_sender_id"
-                            class="mt-1 block w-full"
-                            :default-value="userConfig?.default_sender_id ?? ''"
-                            placeholder="e.g., cashless, Quezon City"
-                            required
-                        />
-                        <InputError :message="errors.default_sender_id" />
-                    </div>
-
-                    <!-- Additional Sender IDs -->
-                    <div class="grid gap-2">
-                        <Label for="sender_ids"
-                            >Additional Sender IDs</Label
-                        >
+                        <Label for="sender_ids">Sender IDs *</Label>
                         <TagInput
                             v-model="senderIds"
                             name="sender_ids"
@@ -146,8 +136,47 @@ const breadcrumbItems: BreadcrumbItem[] = [
                         />
                         <InputError :message="errors.sender_ids" />
                         <p class="text-sm text-muted-foreground">
-                            Optional. Add alternative sender IDs (e.g., cashless, Quezon City).
+                            Add all your sender IDs (e.g., cashless, Quezon City).
                             Press Enter or comma to add each one.
+                        </p>
+                    </div>
+
+                    <!-- Default Sender ID (pick from above) -->
+                    <div class="grid gap-2">
+                        <Label for="default_sender_id"
+                            >Default Sender ID *</Label
+                        >
+                        <Select
+                            v-model="defaultSenderId"
+                            :disabled="senderIds.length === 0"
+                        >
+                            <SelectTrigger>
+                                <SelectValue
+                                    :placeholder="
+                                        senderIds.length > 0
+                                            ? 'Select default sender ID'
+                                            : 'Add sender IDs above first'
+                                    "
+                                />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem
+                                    v-for="senderId in senderIds"
+                                    :key="senderId"
+                                    :value="senderId"
+                                >
+                                    {{ senderId }}
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <input
+                            type="hidden"
+                            name="default_sender_id"
+                            :value="defaultSenderId"
+                        />
+                        <InputError :message="errors.default_sender_id" />
+                        <p class="text-sm text-muted-foreground">
+                            Choose which sender ID to use by default.
                         </p>
                     </div>
 
