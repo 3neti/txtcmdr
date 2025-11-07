@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import { ref } from 'vue';
 import SmsConfigController from '@/actions/App/Http/Controllers/Settings/SmsConfigController';
 import InputError from '@/components/InputError.vue';
 import HeadingSmall from '@/components/HeadingSmall.vue';
+import TagInput from '@/components/TagInput.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -26,7 +28,9 @@ interface Props {
     usesAppDefaults: boolean;
 }
 
-defineProps<Props>();
+const props = defineProps<Props>();
+
+const senderIds = ref<string[]>(props.userConfig?.sender_ids ?? []);
 
 const breadcrumbItems: BreadcrumbItem[] = [
     {
@@ -133,21 +137,17 @@ const breadcrumbItems: BreadcrumbItem[] = [
                     <!-- Additional Sender IDs -->
                     <div class="grid gap-2">
                         <Label for="sender_ids"
-                            >Additional Sender IDs (comma-separated)</Label
+                            >Additional Sender IDs</Label
                         >
-                        <Input
-                            id="sender_ids"
+                        <TagInput
+                            v-model="senderIds"
                             name="sender_ids"
-                            class="mt-1 block w-full"
-                            :default-value="
-                                userConfig?.sender_ids?.join(', ') ?? ''
-                            "
-                            placeholder="sender1, sender2, sender3"
+                            placeholder="Type sender ID and press Enter or comma"
                         />
                         <InputError :message="errors.sender_ids" />
                         <p class="text-sm text-muted-foreground">
-                            Optional. Provide a list of alternative sender IDs
-                            you can use.
+                            Optional. Add alternative sender IDs (e.g., cashless, Quezon City).
+                            Press Enter or comma to add each one.
                         </p>
                     </div>
 
