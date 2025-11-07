@@ -142,6 +142,15 @@ Route::get('contacts/{id}', function (Request $request, int $id) {
         $defaultSenderId = $smsConfig->default_sender_id;
     }
 
+    // Debug log
+    \Log::info('Contact detail page sender IDs', [
+        'has_config' => $smsConfig !== null,
+        'is_active' => $smsConfig?->is_active,
+        'has_credentials' => $smsConfig?->hasRequiredCredentials(),
+        'sender_ids' => $senderIds,
+        'default_sender_id' => $defaultSenderId,
+    ]);
+
     return Inertia::render('Contacts/Show', array_merge($data, [
         'senderIds' => $senderIds,
         'defaultSenderId' => $defaultSenderId,

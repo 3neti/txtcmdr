@@ -337,12 +337,16 @@ const smsCount = computed(() => Math.ceil(characterCount.value / 160) || 1);
                             </div>
                         </div>
 
-                        <div v-if="senderIds.length > 0">
+                        <div>
                             <Label for="sender_id">Sender ID</Label>
                             <Select v-model="sendForm.sender_id" required>
                                 <SelectTrigger>
                                     <SelectValue
-                                        placeholder="Select sender ID"
+                                        :placeholder="
+                                            senderIds.length > 0
+                                                ? 'Select sender ID'
+                                                : 'No sender IDs configured'
+                                        "
                                     />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -355,6 +359,12 @@ const smsCount = computed(() => Math.ceil(characterCount.value / 160) || 1);
                                     </SelectItem>
                                 </SelectContent>
                             </Select>
+                            <p
+                                v-if="senderIds.length === 0"
+                                class="mt-1 text-xs text-muted-foreground"
+                            >
+                                Configure sender IDs in Settings → SMS
+                            </p>
                         </div>
 
                         <Button
