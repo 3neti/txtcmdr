@@ -18,6 +18,7 @@ class BulkSendFromFile
         UploadedFile $file,
         string $message,
         string $senderId,
+        int $userId,
         string $mobileColumn = 'mobile'
     ): array {
         $parser = new FileParser;
@@ -41,7 +42,7 @@ class BulkSendFromFile
                 $phone = new PhoneNumber($mobile, 'PH');
                 $e164Mobile = $phone->formatE164();
 
-                SendSMSJob::dispatch($e164Mobile, $message, $senderId);
+                SendSMSJob::dispatch($e164Mobile, $message, $senderId, null, $userId);
 
                 $recipients[] = $e164Mobile;
                 $queued++;
@@ -74,6 +75,7 @@ class BulkSendFromFile
             $request->file('file'),
             $request->message,
             $request->sender_id,
+            $request->user()->id,
             $request->mobile_column ?? 'mobile'
         );
 

@@ -28,6 +28,7 @@ class BulkSendPersonalized
     public function handle(
         UploadedFile $file,
         string $senderId,
+        int $userId,
         bool $importContacts = true
     ): array {
         $parser = new FileParser;
@@ -68,6 +69,7 @@ class BulkSendPersonalized
                     $contact = Contact::createFromArray([
                         'mobile' => $e164Mobile,
                         'name' => $data['name'],
+                        'user_id' => $userId,
                     ]);
                     if ($contact) {
                         $imported++;
@@ -84,7 +86,7 @@ class BulkSendPersonalized
                 );
 
                 // Queue SMS
-                SendSMSJob::dispatch($e164Mobile, $personalizedMessage, $senderId);
+                SendSMSJob::dispatch($e164Mobile, $personalizedMessage, $senderId, null, $userId);
                 $queued++;
 
             } catch (\Exception $e) {
@@ -115,6 +117,7 @@ class BulkSendPersonalized
         $result = $this->handle(
             $request->file('file'),
             $request->sender_id,
+            $request->user()->id,
             $request->input('import_contacts', true)
         );
 

@@ -18,7 +18,8 @@ class BroadcastToGroupJob implements ShouldQueue
     public function __construct(
         public int $groupId,
         public string $message,
-        public string $senderId = 'TXTCMDR'
+        public string $senderId = 'TXTCMDR',
+        public ?int $userId = null
     ) {}
 
     /**
@@ -32,7 +33,9 @@ class BroadcastToGroupJob implements ShouldQueue
             SendSMSJob::dispatch(
                 $contact->e164_mobile,
                 $this->message,
-                $this->senderId
+                $this->senderId,
+                null,
+                $this->userId ?? $group->user_id
             );
         }
     }

@@ -41,7 +41,8 @@ class RetryFailedMessage
             $log->recipient,
             $log->message,
             $log->sender_id,
-            $log->scheduled_message_id
+            $log->scheduled_message_id,
+            $log->user_id
         );
 
         return [

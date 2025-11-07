@@ -29,6 +29,7 @@ describe('BulkSendFromFile', function () {
             file: $file,
             message: 'Bulk test message',
             senderId: 'TXTCMDR',
+            userId: $this->user->id,
             mobileColumn: 'mobile'
         );
 
@@ -49,7 +50,8 @@ describe('BulkSendFromFile', function () {
         $result = BulkSendFromFile::run(
             file: $file,
             message: 'Test message',
-            senderId: 'TXTCMDR'
+            senderId: 'TXTCMDR',
+            userId: $this->user->id
         );
 
         expect($result['recipients'])->toContain('+639173011987')
@@ -65,7 +67,8 @@ describe('BulkSendFromFile', function () {
         $result = BulkSendFromFile::run(
             file: $file,
             message: 'Test message',
-            senderId: 'TXTCMDR'
+            senderId: 'TXTCMDR',
+            userId: $this->user->id
         );
 
         expect($result['queued'])->toBe(2)
@@ -84,6 +87,7 @@ describe('BulkSendFromFile', function () {
             file: $file,
             message: 'Test message',
             senderId: 'TXTCMDR',
+            userId: $this->user->id,
             mobileColumn: 'phone_number'
         );
 
@@ -124,6 +128,7 @@ describe('BulkSendPersonalized', function () {
         $result = BulkSendPersonalized::run(
             file: $file,
             senderId: 'TXTCMDR',
+            userId: $this->user->id,
             importContacts: false
         );
 
@@ -152,6 +157,7 @@ describe('BulkSendPersonalized', function () {
         $result = BulkSendPersonalized::run(
             file: $file,
             senderId: 'TXTCMDR',
+            userId: $this->user->id,
             importContacts: false
         );
 
@@ -178,6 +184,7 @@ describe('BulkSendPersonalized', function () {
         $result = BulkSendPersonalized::run(
             file: $file,
             senderId: 'TXTCMDR',
+            userId: $this->user->id,
             importContacts: true
         );
 
@@ -198,6 +205,7 @@ describe('BulkSendPersonalized', function () {
         $result = BulkSendPersonalized::run(
             file: $file,
             senderId: 'TXTCMDR',
+            userId: $this->user->id,
             importContacts: false
         );
 
@@ -214,6 +222,7 @@ describe('BulkSendPersonalized', function () {
         $result = BulkSendPersonalized::run(
             file: $file,
             senderId: 'TXTCMDR',
+            userId: $this->user->id,
             importContacts: false
         );
 
@@ -230,6 +239,7 @@ describe('BulkSendPersonalized', function () {
         BulkSendPersonalized::run(
             file: $file,
             senderId: 'TXTCMDR',
+            userId: $this->user->id,
             importContacts: false
         );
     })->throws(\InvalidArgumentException::class, 'Invalid CSV structure');
@@ -241,6 +251,7 @@ describe('BulkSendPersonalized', function () {
         BulkSendPersonalized::run(
             file: $file,
             senderId: 'TXTCMDR',
+            userId: $this->user->id,
             importContacts: false
         );
     })->throws(\InvalidArgumentException::class, 'File is empty');

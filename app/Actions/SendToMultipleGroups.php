@@ -12,8 +12,9 @@ class SendToMultipleGroups
 {
     use AsAction;
 
-    public function handle(array|string $groups, string $message, ?string $senderId = null): array
+    public function handle(array|string $groups, string $message, ?string $senderId = null, ?int $userId = null): array
     {
+        $userId = $userId ?? auth()->id();
         $senderId = $senderId ?? config('sms.default_sender_id', 'TXTCMDR');
 
         // Normalize to array
@@ -38,7 +39,8 @@ class SendToMultipleGroups
                 BroadcastToGroupJob::dispatch(
                     $group->id,
                     $message,
-                    $senderId
+                    $senderId,
+                    $userId
                 );
 
                 $contactCount = $group->contacts()->count();
