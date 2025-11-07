@@ -301,7 +301,8 @@ echo $contact->e164_mobile; // "+639173011987"
 - `SendToMultipleRecipients` - Send SMS to multiple phone numbers
 - `SendToMultipleGroups` - Broadcast SMS to multiple groups
 - `CreateGroup`, `ListGroups`, `GetGroup`, `DeleteGroup` - Group management
-- `GetContactMessages` - Get message history for a specific contact
+- `GetContactMessages` - Get message history for a specific contact (modal view)
+- `GetContactDetails` - Get comprehensive contact details with stats and paginated message history
 - `ScheduleMessage` - Schedule SMS for future delivery
 - `UpdateScheduledMessage`, `CancelScheduledMessage`, `ListScheduledMessages` - Scheduled message management
 - `BulkSendFromFile` - Send SMS to all numbers in CSV/XLSX
@@ -470,11 +471,27 @@ mobile,name,message
 - Click group card to view members
 - Send SMS to entire group
 
-**Contacts Management** (`pages/Contacts/Index.vue`):
-- List all contacts with search/filter
-- Create/edit/delete contacts
-- **Edit contacts**: Double-click row or click edit icon
-- **View Message History**: Click MessageSquare icon to see conversation thread with contact
+**Contacts Management** (`pages/Contacts/Index.vue`, `pages/Contacts/Show.vue`):
+- **Index Page**: List all contacts with search/filter
+  - Create/edit/delete contacts
+  - **Single click contact row** → Navigate to detail page
+  - **MessageSquare icon** → Quick modal view (see below)
+  - **Double-click row** → Edit dialog
+  - Mobile field with lock/unlock toggle (focus on name by default)
+  - Import contacts from CSV (also available in Bulk Operations)
+  - Assign contacts to groups
+  - Display contact groups as badges
+
+- **Detail Page** (`/contacts/{id}`): Comprehensive contact view with two-way messaging
+  - **Header Section**: Large avatar, contact name, phone, group badges, edit button
+  - **Stats Cards**: Total messages, success rate, failed count, last message time
+  - **Quick Send Form**: Send SMS directly to contact with character counter and sender ID selection
+  - **Message Timeline**: Paginated message history (20 per page) with status filters
+  - **Status Filter**: Filter by all/sent/failed/pending
+  - **Retry Button**: Retry failed messages inline
+  - **Breadcrumb Navigation**: Dashboard → Contacts → Contact Name
+
+- **Quick Modal View** (MessageSquare icon):
   - Modal dialog shows recent messages (up to 50)
   - Chronological message list with status badges
   - Relative timestamps ("2 hours ago", "Yesterday")
@@ -483,10 +500,6 @@ mobile,name,message
   - Retry button for failed messages
   - Empty state for contacts with no messages
   - Uses E.164 format for accurate message matching
-- Mobile field with lock/unlock toggle (focus on name by default)
-- Import contacts from CSV (also available in Bulk Operations)
-- Assign contacts to groups
-- Display contact groups as badges
 
 **Scheduled Messages** (`pages/ScheduledMessages/Index.vue`):
 - List scheduled messages with pagination
@@ -587,7 +600,8 @@ GET  /bulk-operations        → Bulk operations page
 GET  /groups                 → List groups
 GET  /groups/{id}            → View group details
 GET  /contacts               → List contacts
-GET  /contacts/{id}/messages → Get message history for contact (JSON)
+GET  /contacts/{id}          → Contact detail page with stats and message history
+GET  /contacts/{id}/messages → Get message history for contact (JSON, for modal)
 GET  /scheduled-messages     → List scheduled messages
 GET  /message-history        → Message history with search/filter
 

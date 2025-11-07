@@ -123,6 +123,31 @@ Route::get('contacts', function () {
     ]);
 })->middleware(['auth', 'verified'])->name('contacts.index');
 
+Route::get('contacts/{id}', function (Request $request, int $id) {
+    $statusFilter = $request->query('status', 'all');
+    $data = \App\Actions\Contacts\GetContactDetails::run($id, null, $statusFilter);
+
+    // Get user's SMS config for sender IDs
+    $user = auth()->user();
+    $smsConfig = $user->smsConfig('engagespark');
+
+    // Build sender IDs array
+    $senderIds = [];
+    $defaultSenderId = null;
+    if ($smsConfig && $smsConfig->is_active && $smsConfig->hasRequiredCredentials()) {
+        $senderIds = array_unique(array_merge(
+            [$smsConfig->default_sender_id],
+            $smsConfig->sender_ids ?? []
+        ));
+        $defaultSenderId = $smsConfig->default_sender_id;
+    }
+
+    return Inertia::render('Contacts/Show', array_merge($data, [
+        'senderIds' => $senderIds,
+        'defaultSenderId' => $defaultSenderId,
+    ]));
+})->middleware(['auth', 'verified'])->name('contacts.show');
+
 Route::get('contacts/{id}/messages', function (int $id) {
     return response()->json(
         \App\Actions\Contacts\GetContactMessages::run($id)

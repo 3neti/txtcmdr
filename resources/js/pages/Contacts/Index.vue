@@ -194,6 +194,10 @@ const openMessageHistory = (contact: Contact) => {
     contactForHistory.value = contact.id;
     showMessageHistory.value = true;
 };
+
+const viewContactDetails = (contact: Contact) => {
+    router.visit(`/contacts/${contact.id}`);
+};
 </script>
 
 <template>
@@ -236,7 +240,8 @@ const openMessageHistory = (contact: Contact) => {
                     v-for="contact in filteredContacts"
                     :key="contact.id"
                     class="group flex cursor-pointer items-center justify-between rounded-lg border bg-card p-4 shadow-sm hover:bg-accent"
-                    @dblclick="openEditDialog(contact)"
+                    @click="viewContactDetails(contact)"
+                    @dblclick.stop="openEditDialog(contact)"
                 >
                     <div class="flex items-center gap-4">
                         <div
