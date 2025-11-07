@@ -20,6 +20,7 @@ interface Props {
 const props = defineProps<Props>();
 
 const step = ref(1);
+const smsIsActive = ref(true);
 
 // Computed properties based on mode
 const showSmsStep = computed(() => props.smsConfigMode !== 'disabled');
@@ -230,8 +231,13 @@ const goBackToBasicInfo = () => {
                 <div class="flex items-center space-x-2">
                     <Checkbox
                         id="sms_is_active"
+                        :checked="smsIsActive"
+                        @update:checked="(value) => (smsIsActive = value)"
+                    />
+                    <input
+                        type="hidden"
                         name="sms_is_active"
-                        :default-checked="true"
+                        :value="smsIsActive ? '1' : '0'"
                     />
                     <Label for="sms_is_active" class="cursor-pointer">
                         Use my custom SMS configuration
