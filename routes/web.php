@@ -325,6 +325,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
             \App\Actions\Contacts\ImportContactsFromFile::run(
                 $request->file('file'),
+                auth()->id(),
                 $request->input('group_id')
             );
 
@@ -412,6 +413,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 $request->file('file'),
                 $request->input('message'),
                 $request->input('sender_id'),
+                auth()->id(),
                 $request->input('mobile_column', 'mobile')
             );
 
@@ -439,6 +441,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             $result = \App\Actions\SMS\BulkSendPersonalized::run(
                 $request->file('file'),
                 $request->input('sender_id'),
+                auth()->id(),
                 $request->boolean('import_contacts')
             );
 
