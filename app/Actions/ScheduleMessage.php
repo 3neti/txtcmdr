@@ -27,7 +27,8 @@ class ScheduleMessage
         array|string $recipients,
         string $message,
         string|Carbon $scheduledAt,
-        ?string $senderId = null
+        ?string $senderId = null,
+        ?int $userId = null
     ): ScheduledMessage {
         $senderId = $senderId ?? config('sms.default_sender_id', 'TXTCMDR');
         $scheduledAt = $scheduledAt instanceof Carbon
@@ -40,9 +41,10 @@ class ScheduleMessage
             : $recipients;
 
         // Parse recipients (can be phone numbers, contacts, or groups)
-        $parsedRecipients = $this->parseRecipients($recipientArray);
+        $parsedRecipients = $this->parseRecipients($recipientArray, $userId);
 
         return ScheduledMessage::create([
+            'user_id' => $userId ?? auth()->id(),
             'message' => $message,
             'sender_id' => $senderId,
             'recipient_type' => $parsedRecipients['type'],
@@ -84,13 +86,19 @@ class ScheduleMessage
     /**
      * Parse recipients into phone numbers and groups
      */
-    protected function parseRecipients(array $recipients): array
+    protected function parseRecipients(array $recipients, ?int $userId = null): array
     {
+        $userId = $userId ?? auth()->id();
         $numbers = [];
         $groups = [];
         $totalCount = 0;
 
         foreach ($recipients as $recipient) {
+            // Skip empty recipients
+            if (empty(trim($recipient))) {
+                continue;
+            }
+
             // Try to parse as phone number
             try {
                 $phone = new PhoneNumber($recipient, 'PH');
@@ -98,7 +106,7 @@ class ScheduleMessage
 
                 // Create/get contact and ensure it has country set
                 $contact = Contact::firstOrCreate(
-                    ['mobile' => $e164],
+                    ['mobile' => $e164, 'user_id' => $userId],
                     ['country' => 'PH']
                 );
 
@@ -107,11 +115,14 @@ class ScheduleMessage
 
                 continue;
             } catch (\Exception $e) {
-                // Not a valid phone number
+                // Not a valid phone number, will try contact name or group
+                \Log::debug("Failed to parse as phone: {$recipient}", ['error' => $e->getMessage()]);
             }
 
             // Try to find as contact by name
-            $contact = Contact::where('meta->name', $recipient)->first();
+            $contact = Contact::where('user_id', $userId)
+                ->where('meta->name', $recipient)
+                ->first();
             if ($contact) {
                 // Safely get E.164 format - use our custom accessor
                 try {
@@ -126,7 +137,9 @@ class ScheduleMessage
             }
 
             // Try to find as group
-            $group = Group::where('name', $recipient)->first();
+            $group = Group::where('user_id', $userId)
+                ->where('name', $recipient)
+                ->first();
             if ($group) {
                 $groupContactCount = $group->contacts()->count();
                 $groups[] = [

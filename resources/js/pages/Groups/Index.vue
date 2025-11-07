@@ -1,16 +1,4 @@
 <script setup lang="ts">
-import AppLayout from '@/layouts/AppLayout.vue';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -21,6 +9,18 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { Plus, Trash2, Users } from 'lucide-vue-next';
@@ -199,7 +199,10 @@ const formatDate = (date: string) => {
                             placeholder="e.g., VIP Customers, Team Members"
                             required
                         />
-                        <p v-if="form.errors.name" class="mt-1 text-sm text-destructive">
+                        <p
+                            v-if="form.errors.name"
+                            class="mt-1 text-sm text-destructive"
+                        >
                             {{ form.errors.name }}
                         </p>
                     </div>
@@ -217,7 +220,10 @@ const formatDate = (date: string) => {
                             placeholder="Brief description of this group"
                             rows="3"
                         />
-                        <p v-if="form.errors.description" class="mt-1 text-sm text-destructive">
+                        <p
+                            v-if="form.errors.description"
+                            class="mt-1 text-sm text-destructive"
+                        >
                             {{ form.errors.description }}
                         </p>
                     </div>
@@ -231,7 +237,9 @@ const formatDate = (date: string) => {
                             Cancel
                         </Button>
                         <Button type="submit" :disabled="form.processing">
-                            {{ form.processing ? 'Creating...' : 'Create Group' }}
+                            {{
+                                form.processing ? 'Creating...' : 'Create Group'
+                            }}
                         </Button>
                     </DialogFooter>
                 </form>

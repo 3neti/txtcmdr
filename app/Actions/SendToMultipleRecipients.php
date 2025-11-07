@@ -13,8 +13,9 @@ class SendToMultipleRecipients
 {
     use AsAction;
 
-    public function handle(array|string $recipients, string $message, ?string $senderId = null): array
+    public function handle(array|string $recipients, string $message, ?string $senderId = null, ?int $userId = null): array
     {
+        $userId = $userId ?? auth()->id();
         $senderId = $senderId ?? config('sms.default_sender_id', 'TXTCMDR');
 
         // Normalize to array
@@ -27,14 +28,17 @@ class SendToMultipleRecipients
 
         foreach ($recipientArray as $mobile) {
             try {
-                // Create PhoneNumber object and Contact
+                // Create PhoneNumber object
                 $phone = new PhoneNumber(trim($mobile), 'PH');
-                $contact = Contact::fromPhoneNumber($phone);
+                $e164Mobile = $phone->formatE164();
 
-                // Get E.164 format for SMS sending
-                $e164Mobile = $contact->e164_mobile;
+                // Create or get contact for this user
+                $contact = Contact::firstOrCreate(
+                    ['mobile' => $e164Mobile, 'user_id' => $userId],
+                    ['country' => 'PH']
+                );
 
-                SendSMSJob::dispatch($e164Mobile, $message, $senderId, null, auth()->id());
+                SendSMSJob::dispatch($e164Mobile, $message, $senderId, null, $userId);
 
                 $normalizedRecipients[] = $e164Mobile;
                 $dispatchedCount++;

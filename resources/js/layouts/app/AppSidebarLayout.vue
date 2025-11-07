@@ -6,8 +6,8 @@ import AppSidebarHeader from '@/components/AppSidebarHeader.vue';
 import { Toaster } from '@/components/ui/sonner';
 import type { BreadcrumbItemType } from '@/types';
 import { usePage } from '@inertiajs/vue3';
-import { toast } from 'vue-sonner';
 import { watch } from 'vue';
+import { toast } from 'vue-sonner';
 
 interface Props {
     breadcrumbs?: BreadcrumbItemType[];
@@ -36,7 +36,7 @@ watch(
             toast.warning(flash.warning);
         }
     },
-    { deep: true, immediate: true }
+    { deep: true, immediate: true },
 );
 </script>
 

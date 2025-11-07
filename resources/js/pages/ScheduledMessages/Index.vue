@@ -1,13 +1,4 @@
 <script setup lang="ts">
-import AppLayout from '@/layouts/AppLayout.vue';
-import { Button } from '@/components/ui/button';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -18,6 +9,15 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import { Calendar, Clock, X } from 'lucide-vue-next';
@@ -78,16 +78,19 @@ const cancelMessage = () => {
                 showCancelDialog.value = false;
                 messageToCancel.value = null;
             },
-        }
+        },
     );
 };
 
 const getStatusBadgeClass = (status: string) => {
     const classes = {
-        pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
-        processing: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
+        pending:
+            'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
+        processing:
+            'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
         sent: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
-        cancelled: 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400',
+        cancelled:
+            'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400',
         failed: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
     };
     return classes[status as keyof typeof classes] || classes.pending;
@@ -125,7 +128,10 @@ const isPast = (date: string) => {
                         View and manage your scheduled SMS messages
                     </p>
                 </div>
-                <Select :model-value="currentStatus" @update:model-value="filterByStatus">
+                <Select
+                    :model-value="currentStatus"
+                    @update:model-value="filterByStatus"
+                >
                     <SelectTrigger class="w-[180px]">
                         <SelectValue placeholder="Filter by status" />
                     </SelectTrigger>
@@ -165,12 +171,19 @@ const isPast = (date: string) => {
                             <p class="text-sm">{{ message.message }}</p>
 
                             <!-- Details -->
-                            <div class="flex flex-wrap gap-4 text-sm text-muted-foreground">
+                            <div
+                                class="flex flex-wrap gap-4 text-sm text-muted-foreground"
+                            >
                                 <div class="flex items-center gap-1">
                                     <Clock class="h-4 w-4" />
-                                    <span>{{ formatDateTime(message.scheduled_at) }}</span>
+                                    <span>{{
+                                        formatDateTime(message.scheduled_at)
+                                    }}</span>
                                     <span
-                                        v-if="message.status === 'pending' && isPast(message.scheduled_at)"
+                                        v-if="
+                                            message.status === 'pending' &&
+                                            isPast(message.scheduled_at)
+                                        "
                                         class="ml-1 text-yellow-600 dark:text-yellow-500"
                                     >
                                         (Processing soon)
@@ -181,7 +194,12 @@ const isPast = (date: string) => {
                                 </div>
                                 <div v-if="message.status === 'sent'">
                                     ✓ {{ message.sent_count }} sent
-                                    <span v-if="message.failed_count && message.failed_count > 0">
+                                    <span
+                                        v-if="
+                                            message.failed_count &&
+                                            message.failed_count > 0
+                                        "
+                                    >
                                         · ✗ {{ message.failed_count }} failed
                                     </span>
                                 </div>
@@ -267,10 +285,12 @@ const isPast = (date: string) => {
         <AlertDialog v-model:open="showCancelDialog">
             <AlertDialogContent>
                 <AlertDialogHeader>
-                    <AlertDialogTitle>Cancel Scheduled Message?</AlertDialogTitle>
+                    <AlertDialogTitle
+                        >Cancel Scheduled Message?</AlertDialogTitle
+                    >
                     <AlertDialogDescription>
-                        Are you sure you want to cancel this scheduled message? This
-                        action cannot be undone.
+                        Are you sure you want to cancel this scheduled message?
+                        This action cannot be undone.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>

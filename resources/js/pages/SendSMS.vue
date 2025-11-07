@@ -1,7 +1,21 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import { Head, router } from '@inertiajs/vue3';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/AppLayout.vue';
+import { sendSMS } from '@/routes';
+import type { BreadcrumbItem } from '@/types';
+import { Head, router } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
 
 interface Props {
     senderIds: string[];
@@ -11,14 +25,6 @@ interface Props {
 }
 
 const props = defineProps<Props>();
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { sendSMS } from '@/routes';
-import type { BreadcrumbItem } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Send SMS', href: sendSMS().url },
@@ -42,23 +48,25 @@ const characterCount = computed(() => form.value.message.length);
 const smsCount = computed(() => Math.ceil(characterCount.value / 160) || 1);
 const recipientCount = computed(() => {
     if (!form.value.recipients.trim()) return 0;
-    return form.value.recipients.split(',').filter(r => r.trim()).length;
+    return form.value.recipients.split(',').filter((r) => r.trim()).length;
 });
 
 const canSend = computed(() => {
-    return form.value.recipients.trim().length > 0 && 
-           form.value.message.trim().length > 0 &&
-           (!scheduleMode.value || scheduledAt.value.length > 0);
+    return (
+        form.value.recipients.trim().length > 0 &&
+        form.value.message.trim().length > 0 &&
+        (!scheduleMode.value || scheduledAt.value.length > 0)
+    );
 });
 
 // Methods
 const sendNow = () => {
     if (!canSend.value || sending.value) return;
-    
+
     sending.value = true;
     errors.value = {};
     success.value = false;
-    
+
     // Safety timeout to re-enable button after 10 seconds
     const timeout = setTimeout(() => {
         if (sending.value) {
@@ -66,38 +74,42 @@ const sendNow = () => {
             console.warn('Request timed out - re-enabling button');
         }
     }, 10000);
-    
-    router.post('/sms/send', {
-        recipients: form.value.recipients,
-        message: form.value.message,
-        sender_id: form.value.sender_id,
-    }, {
-        onSuccess: () => {
-            clearTimeout(timeout);
-            success.value = true;
-            form.value.recipients = '';
-            form.value.message = '';
-            sending.value = false;
+
+    router.post(
+        '/sms/send',
+        {
+            recipients: form.value.recipients,
+            message: form.value.message,
+            sender_id: form.value.sender_id,
         },
-        onError: (err) => {
-            clearTimeout(timeout);
-            errors.value = err as Record<string, string>;
-            sending.value = false;
+        {
+            onSuccess: () => {
+                clearTimeout(timeout);
+                success.value = true;
+                form.value.recipients = '';
+                form.value.message = '';
+                sending.value = false;
+            },
+            onError: (err) => {
+                clearTimeout(timeout);
+                errors.value = err as Record<string, string>;
+                sending.value = false;
+            },
+            onFinish: () => {
+                clearTimeout(timeout);
+                sending.value = false;
+            },
         },
-        onFinish: () => {
-            clearTimeout(timeout);
-            sending.value = false;
-        },
-    });
+    );
 };
 
 const scheduleMessage = () => {
     if (!canSend.value || !scheduledAt.value || sending.value) return;
-    
+
     sending.value = true;
     errors.value = {};
     success.value = false;
-    
+
     // Safety timeout to re-enable button after 10 seconds
     const timeout = setTimeout(() => {
         if (sending.value) {
@@ -105,32 +117,36 @@ const scheduleMessage = () => {
             console.warn('Request timed out - re-enabling button');
         }
     }, 10000);
-    
-    router.post('/sms/schedule', {
-        recipients: form.value.recipients.split(',').map(r => r.trim()),
-        message: form.value.message,
-        sender_id: form.value.sender_id,
-        scheduled_at: scheduledAt.value,
-    }, {
-        onSuccess: () => {
-            clearTimeout(timeout);
-            success.value = true;
-            form.value.recipients = '';
-            form.value.message = '';
-            scheduledAt.value = '';
-            scheduleMode.value = false;
-            sending.value = false;
+
+    router.post(
+        '/sms/schedule',
+        {
+            recipients: form.value.recipients.split(',').map((r) => r.trim()),
+            message: form.value.message,
+            sender_id: form.value.sender_id,
+            scheduled_at: scheduledAt.value,
         },
-        onError: (err) => {
-            clearTimeout(timeout);
-            errors.value = err as Record<string, string>;
-            sending.value = false;
+        {
+            onSuccess: () => {
+                clearTimeout(timeout);
+                success.value = true;
+                form.value.recipients = '';
+                form.value.message = '';
+                scheduledAt.value = '';
+                scheduleMode.value = false;
+                sending.value = false;
+            },
+            onError: (err) => {
+                clearTimeout(timeout);
+                errors.value = err as Record<string, string>;
+                sending.value = false;
+            },
+            onFinish: () => {
+                clearTimeout(timeout);
+                sending.value = false;
+            },
         },
-        onFinish: () => {
-            clearTimeout(timeout);
-            sending.value = false;
-        },
-    });
+    );
 };
 
 const handleSubmit = () => {
@@ -151,17 +167,17 @@ const addTimeToSchedule = (minutes: number) => {
         // Start from current local time
         baseTime = new Date();
     }
-    
+
     // Add the specified minutes
     baseTime.setMinutes(baseTime.getMinutes() + minutes);
-    
+
     // Format to datetime-local input format (YYYY-MM-DDTHH:mm) in local time
     const year = baseTime.getFullYear();
     const month = String(baseTime.getMonth() + 1).padStart(2, '0');
     const day = String(baseTime.getDate()).padStart(2, '0');
     const hours = String(baseTime.getHours()).padStart(2, '0');
     const mins = String(baseTime.getMinutes()).padStart(2, '0');
-    
+
     scheduledAt.value = `${year}-${month}-${day}T${hours}:${mins}`;
 };
 </script>
@@ -171,11 +187,16 @@ const addTimeToSchedule = (minutes: number) => {
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 p-4">
-            <div class="max-w-3xl mx-auto w-full">
+            <div class="mx-auto w-full max-w-3xl">
                 <!-- Success Alert -->
-                <Alert v-if="success" class="mb-4 bg-green-50 border-green-200">
+                <Alert v-if="success" class="mb-4 border-green-200 bg-green-50">
                     <AlertDescription class="text-green-800">
-                        ✓ {{ scheduleMode ? 'Message scheduled successfully!' : 'Message sent successfully!' }}
+                        ✓
+                        {{
+                            scheduleMode
+                                ? 'Message scheduled successfully!'
+                                : 'Message sent successfully!'
+                        }}
                     </AlertDescription>
                 </Alert>
 
@@ -186,7 +207,7 @@ const addTimeToSchedule = (minutes: number) => {
                             Send SMS messages to individual numbers or groups
                         </CardDescription>
                     </CardHeader>
-                    
+
                     <CardContent>
                         <form @submit.prevent="handleSubmit" class="space-y-6">
                             <!-- Recipients -->
@@ -199,17 +220,28 @@ const addTimeToSchedule = (minutes: number) => {
                                     id="recipients"
                                     v-model="form.recipients"
                                     :placeholder="props.recipientsPlaceholder"
-                                    :class="{ 'border-red-500': errors.recipients }"
+                                    :class="{
+                                        'border-red-500': errors.recipients,
+                                    }"
                                 />
                                 <p class="text-sm text-muted-foreground">
-                                    Enter phone numbers (comma-separated) or group names
+                                    Enter phone numbers (comma-separated) or
+                                    group names
                                 </p>
-                                <p v-if="errors.recipients" class="text-sm text-red-500">
+                                <p
+                                    v-if="errors.recipients"
+                                    class="text-sm text-red-500"
+                                >
                                     {{ errors.recipients }}
                                 </p>
-                                <div v-if="recipientCount > 0" class="flex gap-2">
+                                <div
+                                    v-if="recipientCount > 0"
+                                    class="flex gap-2"
+                                >
                                     <Badge variant="secondary">
-                                        {{ recipientCount }} recipient{{ recipientCount !== 1 ? 's' : '' }}
+                                        {{ recipientCount }} recipient{{
+                                            recipientCount !== 1 ? 's' : ''
+                                        }}
                                     </Badge>
                                 </div>
                             </div>
@@ -225,8 +257,10 @@ const addTimeToSchedule = (minutes: number) => {
                                     v-model="form.message"
                                     rows="6"
                                     maxlength="1600"
-                                    class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                    :class="{ 'border-red-500': errors.message }"
+                                    class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                                    :class="{
+                                        'border-red-500': errors.message,
+                                    }"
                                     :placeholder="props.messagePlaceholder"
                                 />
                                 <div class="flex items-center justify-between">
@@ -237,7 +271,10 @@ const addTimeToSchedule = (minutes: number) => {
                                         {{ smsCount }} SMS
                                     </Badge>
                                 </div>
-                                <p v-if="errors.message" class="text-sm text-red-500">
+                                <p
+                                    v-if="errors.message"
+                                    class="text-sm text-red-500"
+                                >
                                     {{ errors.message }}
                                 </p>
                             </div>
@@ -248,9 +285,13 @@ const addTimeToSchedule = (minutes: number) => {
                                 <select
                                     id="sender_id"
                                     v-model="form.sender_id"
-                                    class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                                    class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
                                 >
-                                    <option v-for="senderId in senderIds" :key="senderId" :value="senderId">
+                                    <option
+                                        v-for="senderId in senderIds"
+                                        :key="senderId"
+                                        :value="senderId"
+                                    >
                                         {{ senderId }}
                                     </option>
                                 </select>
@@ -265,26 +306,39 @@ const addTimeToSchedule = (minutes: number) => {
                                         type="checkbox"
                                         class="h-4 w-4 rounded border-gray-300"
                                     />
-                                    <Label for="schedule" class="cursor-pointer">
+                                    <Label
+                                        for="schedule"
+                                        class="cursor-pointer"
+                                    >
                                         Schedule for later
                                     </Label>
                                 </div>
 
                                 <div v-if="scheduleMode" class="space-y-3">
                                     <div>
-                                        <Label for="scheduled_at">Schedule Date & Time</Label>
+                                        <Label for="scheduled_at"
+                                            >Schedule Date & Time</Label
+                                        >
                                         <Input
                                             id="scheduled_at"
                                             v-model="scheduledAt"
                                             type="datetime-local"
-                                            :min="new Date().toISOString().slice(0, 16)"
+                                            :min="
+                                                new Date()
+                                                    .toISOString()
+                                                    .slice(0, 16)
+                                            "
                                             class="mt-1.5"
                                         />
                                     </div>
-                                    
+
                                     <!-- Quick Schedule Buttons -->
                                     <div>
-                                        <p class="text-xs text-muted-foreground mb-2">Quick schedule:</p>
+                                        <p
+                                            class="mb-2 text-xs text-muted-foreground"
+                                        >
+                                            Quick schedule:
+                                        </p>
                                         <div class="flex flex-wrap gap-2">
                                             <Button
                                                 type="button"
@@ -353,7 +407,9 @@ const addTimeToSchedule = (minutes: number) => {
                                                 type="button"
                                                 variant="outline"
                                                 size="sm"
-                                                @click="addTimeToSchedule(10080)"
+                                                @click="
+                                                    addTimeToSchedule(10080)
+                                                "
                                                 class="text-xs"
                                             >
                                                 +1 week
@@ -370,18 +426,26 @@ const addTimeToSchedule = (minutes: number) => {
                                     :disabled="!canSend || sending"
                                     class="flex-1"
                                 >
-                                    {{ sending ? 'Sending...' : scheduleMode ? 'Schedule Message' : 'Send Now' }}
+                                    {{
+                                        sending
+                                            ? 'Sending...'
+                                            : scheduleMode
+                                              ? 'Schedule Message'
+                                              : 'Send Now'
+                                    }}
                                 </Button>
                                 <Button
                                     type="button"
                                     variant="outline"
-                                    @click="() => {
-                                        form.recipients = '';
-                                        form.message = '';
-                                        scheduledAt = '';
-                                        scheduleMode = false;
-                                        errors = {};
-                                    }"
+                                    @click="
+                                        () => {
+                                            form.recipients = '';
+                                            form.message = '';
+                                            scheduledAt = '';
+                                            scheduleMode = false;
+                                            errors = {};
+                                        }
+                                    "
                                 >
                                     Clear
                                 </Button>
@@ -395,11 +459,26 @@ const addTimeToSchedule = (minutes: number) => {
                     <CardHeader>
                         <CardTitle class="text-base">💡 Tips</CardTitle>
                     </CardHeader>
-                    <CardContent class="text-sm text-muted-foreground space-y-2">
-                        <p>• Use comma-separated phone numbers: <code class="text-xs bg-muted px-1 py-0.5 rounded">09173011987, 09178251991</code></p>
-                        <p>• Phone numbers can be in any format (09XX, +639XX, 639XX)</p>
-                        <p>• Each SMS can contain up to 160 characters (longer messages split automatically)</p>
-                        <p>• Blacklisted numbers will be automatically filtered</p>
+                    <CardContent
+                        class="space-y-2 text-sm text-muted-foreground"
+                    >
+                        <p>
+                            • Use comma-separated phone numbers:
+                            <code class="rounded bg-muted px-1 py-0.5 text-xs"
+                                >09173011987, 09178251991</code
+                            >
+                        </p>
+                        <p>
+                            • Phone numbers can be in any format (09XX, +639XX,
+                            639XX)
+                        </p>
+                        <p>
+                            • Each SMS can contain up to 160 characters (longer
+                            messages split automatically)
+                        </p>
+                        <p>
+                            • Blacklisted numbers will be automatically filtered
+                        </p>
                     </CardContent>
                 </Card>
             </div>

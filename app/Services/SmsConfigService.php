@@ -9,7 +9,7 @@ class SmsConfigService
 {
     /**
      * Get SMS configuration with user override → app config fallback (CLI only)
-     * 
+     *
      * For web requests, users MUST have their own SMS config.
      * Fallback to .env only applies for console/artisan commands.
      */

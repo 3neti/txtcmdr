@@ -71,7 +71,9 @@ class ProcessScheduledMessage implements ShouldQueue
                 SendSMSJob::dispatch(
                     $number,
                     $scheduledMessage->message,
-                    $scheduledMessage->sender_id
+                    $scheduledMessage->sender_id,
+                    $scheduledMessage->id,
+                    $scheduledMessage->user_id
                 );
                 $sentCount++;
             } catch (\Exception $e) {

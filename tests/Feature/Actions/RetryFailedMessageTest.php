@@ -81,6 +81,7 @@ test('it preserves scheduled message association when retrying', function () {
     Queue::fake();
 
     $scheduledMessage = \App\Models\ScheduledMessage::create([
+        'user_id' => $this->user->id,
         'message' => 'Test message',
         'sender_id' => 'TXTCMDR',
         'recipient_type' => 'numbers',

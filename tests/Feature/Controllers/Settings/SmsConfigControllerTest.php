@@ -120,36 +120,6 @@ test('user can delete SMS configuration', function () {
     ]);
 });
 
-test('validation fails when required fields are missing', function () {
-    $response = $this->actingAs($this->user)
-        ->put(route('sms-config.update'), [
-            // Missing required fields
-            'sender_ids' => 'sender1',
-        ]);
-
-    $response->assertSessionHasErrors(['api_key', 'org_id', 'default_sender_id']);
-});
-
-test('validation fails when api_key is missing', function () {
-    $response = $this->actingAs($this->user)
-        ->put(route('sms-config.update'), [
-            'org_id' => 'test-org-id',
-            'default_sender_id' => 'TestSender',
-        ]);
-
-    $response->assertSessionHasErrors('api_key');
-});
-
-test('validation fails when org_id is missing', function () {
-    $response = $this->actingAs($this->user)
-        ->put(route('sms-config.update'), [
-            'api_key' => 'test-api-key',
-            'default_sender_id' => 'TestSender',
-        ]);
-
-    $response->assertSessionHasErrors('org_id');
-});
-
 test('validation fails when default_sender_id is missing', function () {
     $response = $this->actingAs($this->user)
         ->put(route('sms-config.update'), [
@@ -158,6 +128,65 @@ test('validation fails when default_sender_id is missing', function () {
         ]);
 
     $response->assertSessionHasErrors('default_sender_id');
+});
+
+test('can update config without providing credentials', function () {
+    // Create initial config
+    UserSmsConfig::create([
+        'user_id' => $this->user->id,
+        'driver' => 'engagespark',
+        'credentials' => [
+            'api_key' => 'existing-api-key',
+            'org_id' => 'existing-org-id',
+        ],
+        'default_sender_id' => 'OldSender',
+        'sender_ids' => ['old1'],
+        'is_active' => true,
+    ]);
+
+    // Update without providing api_key or org_id
+    $response = $this->actingAs($this->user)
+        ->put(route('sms-config.update'), [
+            'default_sender_id' => 'NewSender',
+            'sender_ids' => 'new1, new2',
+            'is_active' => true,
+        ]);
+
+    $response->assertRedirect();
+    $response->assertSessionHas('status', 'sms-config-updated');
+
+    // Verify credentials were preserved
+    $config = UserSmsConfig::where('user_id', $this->user->id)->first();
+    expect($config->getCredential('api_key'))->toBe('existing-api-key');
+    expect($config->getCredential('org_id'))->toBe('existing-org-id');
+    expect($config->default_sender_id)->toBe('NewSender');
+    expect($config->sender_ids)->toBe(['new1', 'new2']);
+});
+
+test('can update only api_key while preserving org_id', function () {
+    UserSmsConfig::create([
+        'user_id' => $this->user->id,
+        'driver' => 'engagespark',
+        'credentials' => [
+            'api_key' => 'old-key',
+            'org_id' => 'old-org',
+        ],
+        'default_sender_id' => 'Sender',
+        'is_active' => true,
+    ]);
+
+    $response = $this->actingAs($this->user)
+        ->put(route('sms-config.update'), [
+            'api_key' => 'new-key',
+            'default_sender_id' => 'Sender',
+            'is_active' => true,
+        ]);
+
+    $response->assertRedirect();
+
+    $config = UserSmsConfig::where('user_id', $this->user->id)->first();
+    expect($config->getCredential('api_key'))->toBe('new-key');
+    expect($config->getCredential('org_id'))->toBe('old-org');
 });
 
 test('credentials are encrypted in database', function () {
@@ -211,13 +240,13 @@ test('user can only access their own config', function () {
     );
 });
 
-test('api key and org_id are not sent to frontend', function () {
+test('api key and org_id are masked in frontend', function () {
     UserSmsConfig::create([
         'user_id' => $this->user->id,
         'driver' => 'engagespark',
         'credentials' => [
-            'api_key' => 'secret-api-key',
-            'org_id' => 'secret-org-id',
+            'api_key' => 'secret-api-key-1234',
+            'org_id' => 'secret-org-id-5678',
         ],
         'default_sender_id' => 'TestSender',
         'is_active' => true,
@@ -226,9 +255,10 @@ test('api key and org_id are not sent to frontend', function () {
     $response = $this->actingAs($this->user)->get(route('sms-config.edit'));
 
     $response->assertInertia(fn ($page) => $page
-        ->where('userConfig.api_key', '')
-        ->where('userConfig.org_id', '')
+        ->where('userConfig.api_key_masked', '••••••••1234')
+        ->where('userConfig.org_id_masked', '••••••••5678')
         ->where('userConfig.default_sender_id', 'TestSender')
+        ->has('userConfig.has_credentials')
     );
 });
 

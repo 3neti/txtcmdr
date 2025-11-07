@@ -14,6 +14,11 @@ test('new users can register', function () {
         'email' => 'test@example.com',
         'password' => 'password',
         'password_confirmation' => 'password',
+        'sms_api_key' => 'test-api-key',
+        'sms_org_id' => 'test-org-id',
+        'sms_sender_ids' => 'TestSender',
+        'sms_default_sender_id' => 'TestSender',
+        'sms_is_active' => '1',
     ]);
 
     $this->assertAuthenticated();

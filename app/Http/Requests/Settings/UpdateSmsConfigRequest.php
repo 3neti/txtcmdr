@@ -22,8 +22,8 @@ class UpdateSmsConfigRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'api_key' => 'required|string|max:255',
-            'org_id' => 'required|string|max:255',
+            'api_key' => 'nullable|string|max:255',
+            'org_id' => 'nullable|string|max:255',
             'default_sender_id' => 'required|string|max:255',
             'sender_ids' => 'nullable|string',
             'is_active' => 'boolean',

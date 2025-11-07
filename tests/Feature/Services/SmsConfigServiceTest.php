@@ -8,7 +8,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
-    $this->service = new SmsConfigService();
+    $this->service = new SmsConfigService;
 });
 
 it('returns app config when no user config exists (console context)', function () {
@@ -23,7 +23,7 @@ it('returns app config when no user config exists (console context)', function (
 
 it('returns user config when active config exists', function () {
     $user = User::factory()->create();
-    
+
     UserSmsConfig::create([
         'user_id' => $user->id,
         'driver' => 'engagespark',
@@ -47,7 +47,7 @@ it('returns user config when active config exists', function () {
 
 it('returns app config when user config is inactive (console context)', function () {
     $user = User::factory()->create();
-    
+
     UserSmsConfig::create([
         'user_id' => $user->id,
         'driver' => 'engagespark',
@@ -66,7 +66,7 @@ it('returns app config when user config is inactive (console context)', function
 
 it('returns app config when user config missing required credentials (console context)', function () {
     $user = User::factory()->create();
-    
+
     UserSmsConfig::create([
         'user_id' => $user->id,
         'driver' => 'engagespark',
@@ -85,7 +85,7 @@ it('returns app config when user config missing required credentials (console co
 
 it('encrypts credentials in database', function () {
     $user = User::factory()->create();
-    
+
     $smsConfig = UserSmsConfig::create([
         'user_id' => $user->id,
         'driver' => 'engagespark',
@@ -110,7 +110,7 @@ it('encrypts credentials in database', function () {
 
 it('has working user relationship', function () {
     $user = User::factory()->create();
-    
+
     UserSmsConfig::create([
         'user_id' => $user->id,
         'driver' => 'engagespark',
@@ -124,7 +124,7 @@ it('has working user relationship', function () {
 
 it('supports multiple drivers per user', function () {
     $user = User::factory()->create();
-    
+
     // Create EngageSPARK config
     UserSmsConfig::create([
         'user_id' => $user->id,
@@ -132,7 +132,7 @@ it('supports multiple drivers per user', function () {
         'credentials' => ['api_key' => 'es-key', 'org_id' => 'es-org'],
         'is_active' => true,
     ]);
-    
+
     // Create Twilio config (future)
     UserSmsConfig::create([
         'user_id' => $user->id,

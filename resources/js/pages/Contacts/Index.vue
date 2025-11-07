@@ -1,23 +1,4 @@
 <script setup lang="ts">
-import AppLayout from '@/layouts/AppLayout.vue';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -28,9 +9,37 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
-import { Lock, Pencil, Plus, Trash2, Unlock, Upload, User, Users } from 'lucide-vue-next';
+import {
+    Lock,
+    Pencil,
+    Plus,
+    Trash2,
+    Unlock,
+    Upload,
+    User,
+    Users,
+} from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 
 interface Group {
@@ -86,7 +95,7 @@ const filteredContacts = computed(() => {
         (contact) =>
             contact.name?.toLowerCase().includes(query) ||
             contact.mobile.includes(query) ||
-            contact.email?.toLowerCase().includes(query)
+            contact.email?.toLowerCase().includes(query),
     );
 });
 
@@ -105,14 +114,14 @@ const openEditDialog = (contact: Contact) => {
     form.mobile = formatPhone(contact.mobile);
     form.name = contact.name || '';
     form.email = contact.email || '';
-    form.group_ids = contact.groups.map(g => g.id);
+    form.group_ids = contact.groups.map((g) => g.id);
     isMobileUnlocked.value = false; // Reset lock state
     showEditDialog.value = true;
 };
 
 const updateContact = () => {
     if (!contactToEdit.value) return;
-    
+
     form.put(`/contacts/${contactToEdit.value.id}`, {
         preserveScroll: true,
         onSuccess: () => {
@@ -402,9 +411,16 @@ const formatDate = (date: string) => {
                                 variant="outline"
                                 size="icon"
                                 @click="toggleMobileLock"
-                                :title="isMobileUnlocked ? 'Lock mobile number' : 'Unlock to edit mobile number'"
+                                :title="
+                                    isMobileUnlocked
+                                        ? 'Lock mobile number'
+                                        : 'Unlock to edit mobile number'
+                                "
                             >
-                                <Lock v-if="!isMobileUnlocked" class="h-4 w-4" />
+                                <Lock
+                                    v-if="!isMobileUnlocked"
+                                    class="h-4 w-4"
+                                />
                                 <Unlock v-else class="h-4 w-4" />
                             </Button>
                         </div>
@@ -444,7 +460,11 @@ const formatDate = (date: string) => {
                             Cancel
                         </Button>
                         <Button type="submit" :disabled="form.processing">
-                            {{ form.processing ? 'Updating...' : 'Update Contact' }}
+                            {{
+                                form.processing
+                                    ? 'Updating...'
+                                    : 'Update Contact'
+                            }}
                         </Button>
                     </DialogFooter>
                 </form>
@@ -457,7 +477,8 @@ const formatDate = (date: string) => {
                 <DialogHeader>
                     <DialogTitle>Import Contacts from CSV</DialogTitle>
                     <DialogDescription>
-                        Upload a CSV file with columns: mobile, name (optional), email (optional)
+                        Upload a CSV file with columns: mobile, name (optional),
+                        email (optional)
                     </DialogDescription>
                 </DialogHeader>
 

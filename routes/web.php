@@ -42,8 +42,8 @@ Route::get('dashboard', function () {
     return Inertia::render('Dashboard', [
         'stats' => [
             'totalGroups' => \App\Models\Group::where('user_id', $user->id)->count(),
-            'totalContacts' => \App\Models\Contact::count(),
-            'scheduledMessages' => \App\Models\ScheduledMessage::where('status', 'pending')->count(),
+            'totalContacts' => \App\Models\Contact::where('user_id', $user->id)->count(),
+            'scheduledMessages' => \App\Models\ScheduledMessage::where('user_id', $user->id)->where('status', 'pending')->count(),
             'totalMessages' => $totalMessages,
             'sentMessages' => $sentMessages,
             'failedMessages' => $failedMessages,
@@ -57,7 +57,8 @@ Route::get('dashboard', function () {
             ->latest()
             ->take(5)
             ->get(),
-        'recentScheduled' => \App\Models\ScheduledMessage::where('status', 'pending')
+        'recentScheduled' => \App\Models\ScheduledMessage::where('user_id', $user->id)
+            ->where('status', 'pending')
             ->latest('scheduled_at')
             ->take(5)
             ->get(),
@@ -110,7 +111,8 @@ Route::get('groups/{id}', function (int $id) {
 })->middleware(['auth', 'verified'])->name('groups.show');
 
 Route::get('contacts', function () {
-    $contacts = \App\Models\Contact::with('groups')
+    $contacts = \App\Models\Contact::where('user_id', auth()->id())
+        ->with('groups')
         ->orderBy('created_at', 'desc')
         ->get();
     $groups = \App\Models\Group::where('user_id', auth()->id())->get();
@@ -248,7 +250,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'group_ids.*' => 'exists:groups,id',
         ]);
 
-        $contact = \App\Models\Contact::createFromArray($request->only(['mobile', 'name', 'email']));
+        $data = $request->only(['mobile', 'name', 'email']);
+        $data['user_id'] = auth()->id();
+
+        $contact = \App\Models\Contact::createFromArray($data);
 
         if ($contact && $request->has('group_ids')) {
             $contact->groups()->sync($request->input('group_ids'));
@@ -278,7 +283,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('contacts.import');
 
     Route::put('contacts/{id}', function (Request $request, int $id) {
-        $contact = \App\Models\Contact::findOrFail($id);
+        $contact = \App\Models\Contact::where('user_id', auth()->id())
+            ->findOrFail($id);
 
         $request->validate([
             'mobile' => 'required|string',
@@ -313,7 +319,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('contacts.update');
 
     Route::delete('contacts/{id}', function (int $id) {
-        $contact = \App\Models\Contact::findOrFail($id);
+        $contact = \App\Models\Contact::where('user_id', auth()->id())
+            ->findOrFail($id);
         $contact->delete();
 
         return back()->with('success', 'Contact deleted successfully!');

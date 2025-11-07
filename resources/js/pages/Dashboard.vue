@@ -3,7 +3,14 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
-import { AlertCircle, Calendar, MessageSquare, Send, Users, UsersRound } from 'lucide-vue-next';
+import {
+    AlertCircle,
+    Calendar,
+    MessageSquare,
+    Send,
+    Users,
+    UsersRound,
+} from 'lucide-vue-next';
 
 interface Stats {
     totalGroups: number;
@@ -114,7 +121,7 @@ const formatRecipient = (recipient: string, contact?: Contact | null) => {
     const phone = formatPhone(recipient);
     // Name is appended directly on the contact object (from meta JSON column)
     const contactName = contact?.name;
-    
+
     return contactName ? `${contactName} (${phone})` : phone;
 };
 </script>
@@ -135,7 +142,9 @@ const formatRecipient = (recipient: string, contact?: Contact | null) => {
                         >
                         <UsersRound class="h-4 w-4 text-muted-foreground" />
                     </div>
-                    <div class="text-3xl font-bold">{{ stats.totalGroups }}</div>
+                    <div class="text-3xl font-bold">
+                        {{ stats.totalGroups }}
+                    </div>
                 </div>
 
                 <div
@@ -147,7 +156,9 @@ const formatRecipient = (recipient: string, contact?: Contact | null) => {
                         >
                         <Users class="h-4 w-4 text-muted-foreground" />
                     </div>
-                    <div class="text-3xl font-bold">{{ stats.totalContacts }}</div>
+                    <div class="text-3xl font-bold">
+                        {{ stats.totalContacts }}
+                    </div>
                 </div>
 
                 <div
@@ -173,7 +184,9 @@ const formatRecipient = (recipient: string, contact?: Contact | null) => {
                         >
                         <MessageSquare class="h-4 w-4 text-muted-foreground" />
                     </div>
-                    <div class="text-3xl font-bold">{{ stats.sentMessages }}</div>
+                    <div class="text-3xl font-bold">
+                        {{ stats.sentMessages }}
+                    </div>
                 </div>
             </div>
 
@@ -187,9 +200,7 @@ const formatRecipient = (recipient: string, contact?: Contact | null) => {
                         @click="action.action"
                         class="flex items-start gap-4 rounded-xl border bg-card p-6 text-left shadow-sm transition-colors hover:bg-accent"
                     >
-                        <div
-                            class="rounded-lg bg-primary/10 p-3 text-primary"
-                        >
+                        <div class="rounded-lg bg-primary/10 p-3 text-primary">
                             <component :is="action.icon" class="h-6 w-6" />
                         </div>
                         <div class="flex flex-col gap-1">
@@ -205,30 +216,46 @@ const formatRecipient = (recipient: string, contact?: Contact | null) => {
             <!-- Message Analytics -->
             <div class="rounded-xl border bg-card p-6 shadow-sm">
                 <h2 class="mb-4 text-lg font-semibold">Message Analytics</h2>
-                
+
                 <!-- Stats Grid -->
                 <div class="mb-6 grid gap-4 md:grid-cols-4">
                     <div class="flex flex-col">
                         <span class="text-sm text-muted-foreground">Today</span>
-                        <span class="text-2xl font-bold">{{ stats.todayMessages }}</span>
+                        <span class="text-2xl font-bold">{{
+                            stats.todayMessages
+                        }}</span>
                     </div>
                     <div class="flex flex-col">
-                        <span class="text-sm text-muted-foreground">This Week</span>
-                        <span class="text-2xl font-bold">{{ stats.thisWeekMessages }}</span>
+                        <span class="text-sm text-muted-foreground"
+                            >This Week</span
+                        >
+                        <span class="text-2xl font-bold">{{
+                            stats.thisWeekMessages
+                        }}</span>
                     </div>
                     <div class="flex flex-col">
-                        <span class="text-sm text-muted-foreground">Success Rate</span>
-                        <span class="text-2xl font-bold text-green-600">{{ stats.successRate }}%</span>
+                        <span class="text-sm text-muted-foreground"
+                            >Success Rate</span
+                        >
+                        <span class="text-2xl font-bold text-green-600"
+                            >{{ stats.successRate }}%</span
+                        >
                     </div>
                     <div class="flex flex-col">
-                        <span class="text-sm text-muted-foreground">Failed</span>
-                        <span class="text-2xl font-bold text-red-600">{{ stats.failedMessages }}</span>
+                        <span class="text-sm text-muted-foreground"
+                            >Failed</span
+                        >
+                        <span class="text-2xl font-bold text-red-600">{{
+                            stats.failedMessages
+                        }}</span>
                     </div>
                 </div>
 
                 <!-- Simple Bar Chart -->
                 <div>
-                    <h3 class="mb-3 text-sm font-medium text-muted-foreground">Last 7 Days</h3>
+                    <h3 class="mb-3 text-sm font-medium text-muted-foreground">
+                        Last 7 Days
+                    </h3>
                     <div class="flex items-end gap-2" style="height: 120px">
                         <div
                             v-for="(day, index) in chartData"
@@ -239,28 +266,43 @@ const formatRecipient = (recipient: string, contact?: Contact | null) => {
                                 <div
                                     class="w-full rounded-t-md bg-primary transition-all hover:bg-primary/80"
                                     :style="{
-                                        height: day.count > 0 ? `${Math.max((day.count / Math.max(...chartData.map(d => d.count))) * 100, 10)}px` : '2px',
-                                        minHeight: '2px'
+                                        height:
+                                            day.count > 0
+                                                ? `${Math.max((day.count / Math.max(...chartData.map((d) => d.count))) * 100, 10)}px`
+                                                : '2px',
+                                        minHeight: '2px',
                                     }"
                                     :title="`${day.date}: ${day.count} messages`"
                                 >
-                                    <span v-if="day.count > 0" class="absolute -top-5 left-1/2 -translate-x-1/2 text-xs font-medium">
+                                    <span
+                                        v-if="day.count > 0"
+                                        class="absolute -top-5 left-1/2 -translate-x-1/2 text-xs font-medium"
+                                    >
                                         {{ day.count }}
                                     </span>
                                 </div>
                             </div>
-                            <span class="text-xs text-muted-foreground">{{ day.date }}</span>
+                            <span class="text-xs text-muted-foreground">{{
+                                day.date
+                            }}</span>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- Failed Messages Summary -->
-            <div v-if="recentFailures.length > 0" class="rounded-xl border border-red-200 bg-red-50 p-6 shadow-sm dark:border-red-900/50 dark:bg-red-950/20">
+            <div
+                v-if="recentFailures.length > 0"
+                class="rounded-xl border border-red-200 bg-red-50 p-6 shadow-sm dark:border-red-900/50 dark:bg-red-950/20"
+            >
                 <div class="mb-4 flex items-center justify-between">
                     <div class="flex items-center gap-2">
-                        <AlertCircle class="h-5 w-5 text-red-600 dark:text-red-400" />
-                        <h2 class="text-lg font-semibold text-red-900 dark:text-red-100">
+                        <AlertCircle
+                            class="h-5 w-5 text-red-600 dark:text-red-400"
+                        />
+                        <h2
+                            class="text-lg font-semibold text-red-900 dark:text-red-100"
+                        >
                             Recent Failed Messages
                         </h2>
                     </div>
@@ -280,21 +322,38 @@ const formatRecipient = (recipient: string, contact?: Contact | null) => {
                         <div class="flex items-start justify-between gap-4">
                             <div class="flex-1 space-y-1">
                                 <div class="flex items-center gap-2 text-sm">
-                                    <span class="font-medium text-red-900 dark:text-red-100">
-                                        To: {{ formatRecipient(failure.recipient, failure.contact_with_name) }}
+                                    <span
+                                        class="font-medium text-red-900 dark:text-red-100"
+                                    >
+                                        To:
+                                        {{
+                                            formatRecipient(
+                                                failure.recipient,
+                                                failure.contact_with_name,
+                                            )
+                                        }}
                                     </span>
-                                    <span class="text-xs text-red-600/70 dark:text-red-400/70">
+                                    <span
+                                        class="text-xs text-red-600/70 dark:text-red-400/70"
+                                    >
                                         From: {{ failure.sender_id }}
                                     </span>
                                 </div>
-                                <p class="line-clamp-1 text-sm text-red-800 dark:text-red-200">
+                                <p
+                                    class="line-clamp-1 text-sm text-red-800 dark:text-red-200"
+                                >
                                     {{ failure.message }}
                                 </p>
-                                <p v-if="failure.error_message" class="text-xs text-red-600 dark:text-red-400">
+                                <p
+                                    v-if="failure.error_message"
+                                    class="text-xs text-red-600 dark:text-red-400"
+                                >
                                     Error: {{ failure.error_message }}
                                 </p>
                             </div>
-                            <span class="shrink-0 text-xs text-red-600/70 dark:text-red-400/70">
+                            <span
+                                class="shrink-0 text-xs text-red-600/70 dark:text-red-400/70"
+                            >
                                 {{ formatDate(failure.failed_at) }}
                             </span>
                         </div>
@@ -314,7 +373,9 @@ const formatRecipient = (recipient: string, contact?: Contact | null) => {
                             class="flex items-center justify-between rounded-lg border p-3 hover:bg-accent"
                         >
                             <div class="flex flex-col">
-                                <span class="font-medium">{{ group.name }}</span>
+                                <span class="font-medium">{{
+                                    group.name
+                                }}</span>
                                 <span class="text-sm text-muted-foreground">
                                     {{ group.contacts_count }} contact(s)
                                 </span>

@@ -10,9 +10,10 @@ class ListGroups
 {
     use AsAction;
 
-    public function handle()
+    public function handle(?int $userId = null)
     {
-        return Group::withCount('contacts')
+        return Group::where('user_id', $userId ?? auth()->id())
+            ->withCount('contacts')
             ->orderBy('name')
             ->get();
     }

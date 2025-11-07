@@ -78,8 +78,8 @@ test('it accepts date string for scheduled_at', function () {
 
 test('it schedules messages for groups', function () {
     $group = Group::create(['name' => 'Test Group', 'user_id' => $this->user->id]);
-    $contact1 = Contact::create(['mobile' => '+639173011987', 'country' => 'PH']);
-    $contact2 = Contact::create(['mobile' => '+639178251991', 'country' => 'PH']);
+    $contact1 = Contact::create(['mobile' => '+639173011987', 'country' => 'PH', 'user_id' => $this->user->id]);
+    $contact2 = Contact::create(['mobile' => '+639178251991', 'country' => 'PH', 'user_id' => $this->user->id]);
     $group->contacts()->attach([$contact1->id, $contact2->id]);
 
     $scheduledAt = Carbon::now()->addHour();
@@ -98,6 +98,7 @@ test('it schedules messages for groups', function () {
 
 test('it schedules messages for contacts by name', function () {
     Contact::create([
+        'user_id' => $this->user->id,
         'mobile' => '+639173011987',
         'country' => 'PH',
         'name' => 'John Doe',
@@ -118,12 +119,13 @@ test('it schedules messages for contacts by name', function () {
 test('it handles mixed recipients (numbers, contacts, groups)', function () {
     // Create group with 2 contacts
     $group = Group::create(['name' => 'Test Group', 'user_id' => $this->user->id]);
-    $contact1 = Contact::create(['mobile' => '+639173011987', 'country' => 'PH']);
-    $contact2 = Contact::create(['mobile' => '+639178251991', 'country' => 'PH']);
+    $contact1 = Contact::create(['mobile' => '+639173011987', 'country' => 'PH', 'user_id' => $this->user->id]);
+    $contact2 = Contact::create(['mobile' => '+639178251991', 'country' => 'PH', 'user_id' => $this->user->id]);
     $group->contacts()->attach([$contact1->id, $contact2->id]);
 
     // Create named contact
     Contact::create([
+        'user_id' => $this->user->id,
         'mobile' => '+639171234567',
         'country' => 'PH',
         'name' => 'Jane Doe',

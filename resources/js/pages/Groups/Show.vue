@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import AppLayout from '@/layouts/AppLayout.vue';
 import { Button } from '@/components/ui/button';
+import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import { ArrowLeft, Send, User } from 'lucide-vue-next';
@@ -105,7 +105,10 @@ const formatPhone = (mobile: string) => {
                                 {{ formatPhone(contact.mobile) }}
                             </div>
                         </div>
-                        <div v-if="contact.email" class="text-sm text-muted-foreground">
+                        <div
+                            v-if="contact.email"
+                            class="text-sm text-muted-foreground"
+                        >
                             {{ contact.email }}
                         </div>
                     </div>

@@ -11,9 +11,10 @@ class ListScheduledMessages
 {
     use AsAction;
 
-    public function handle(string $status = 'all')
+    public function handle(string $status = 'all', ?int $userId = null)
     {
-        $query = ScheduledMessage::query()->orderBy('scheduled_at', 'desc');
+        $query = ScheduledMessage::where('user_id', $userId ?? auth()->id())
+            ->orderBy('scheduled_at', 'desc');
 
         if ($status !== 'all') {
             $query->where('status', $status);

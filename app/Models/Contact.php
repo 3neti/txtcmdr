@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use LBHurtado\Contact\Models\Contact as BaseContact;
 use Propaganistas\LaravelPhone\PhoneNumber;
@@ -16,7 +17,21 @@ class Contact extends BaseContact
     // Ensure schemaless attributes are included when serializing to JSON
     protected $appends = ['name', 'email'];
 
+    // Add user_id to fillable
+    protected $fillable = [
+        'user_id',
+        'mobile',
+        'country',
+        'bank_account',
+        'meta',
+    ];
+
     // Relationships
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
     public function groups(): BelongsToMany
     {
         return $this->belongsToMany(Group::class)
@@ -34,11 +49,17 @@ class Contact extends BaseContact
 
     /**
      * Create a contact from array (for bulk import)
-     * Uses firstOrCreate to avoid duplicates
+     * Uses firstOrCreate to avoid duplicates per user
      */
     public static function createFromArray(array $data): ?self
     {
         if (empty($data['mobile'])) {
+            return null;
+        }
+
+        // Ensure user_id is present
+        $userId = $data['user_id'] ?? auth()->id();
+        if (! $userId) {
             return null;
         }
 
@@ -50,9 +71,9 @@ class Contact extends BaseContact
             return null;
         }
 
-        // Use firstOrCreate to avoid duplicates
+        // Use firstOrCreate to avoid duplicates per user
         $contact = self::firstOrCreate(
-            ['mobile' => $e164Mobile],
+            ['mobile' => $e164Mobile, 'user_id' => $userId],
             ['country' => 'PH']
         );
 

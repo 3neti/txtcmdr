@@ -1,13 +1,12 @@
 <script setup lang="ts">
-import { ref } from 'vue';
 import SmsConfigController from '@/actions/App/Http/Controllers/Settings/SmsConfigController';
-import InputError from '@/components/InputError.vue';
 import HeadingSmall from '@/components/HeadingSmall.vue';
+import InputError from '@/components/InputError.vue';
 import TagInput from '@/components/TagInput.vue';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
     Select,
     SelectContent,
@@ -18,8 +17,9 @@ import {
 import AppLayout from '@/layouts/AppLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
 import { edit } from '@/routes/sms-config';
-import { Form, Head } from '@inertiajs/vue3';
 import { type BreadcrumbItem } from '@/types';
+import { Form, Head } from '@inertiajs/vue3';
+import { ref } from 'vue';
 
 interface UserConfig {
     api_key_masked: string | null;
@@ -62,7 +62,8 @@ const breadcrumbItems: BreadcrumbItem[] = [
                 <!-- Status Alert -->
                 <Alert v-if="!userConfig?.has_credentials" variant="default">
                     <AlertDescription>
-                        Please configure your SMS credentials to start sending messages.
+                        Please configure your SMS credentials to start sending
+                        messages.
                     </AlertDescription>
                 </Alert>
 
@@ -76,7 +77,7 @@ const breadcrumbItems: BreadcrumbItem[] = [
                 >
                     <!-- API Key -->
                     <div class="grid gap-2">
-                        <Label for="api_key">EngageSPARK API Key *</Label>
+                        <Label for="api_key">EngageSPARK API Key</Label>
                         <Input
                             id="api_key"
                             name="api_key"
@@ -86,7 +87,6 @@ const breadcrumbItems: BreadcrumbItem[] = [
                                 userConfig?.api_key_masked ||
                                 'Enter your EngageSPARK API Key'
                             "
-                            required
                             autocomplete="off"
                         />
                         <InputError :message="errors.api_key" />
@@ -94,16 +94,14 @@ const breadcrumbItems: BreadcrumbItem[] = [
                             v-if="userConfig?.api_key_masked"
                             class="text-sm text-muted-foreground"
                         >
-                            Current: {{ userConfig.api_key_masked }} (enter new
-                            key to change)
+                            Current: {{ userConfig.api_key_masked }} (leave
+                            blank to keep current)
                         </p>
                     </div>
 
                     <!-- Organization ID -->
                     <div class="grid gap-2">
-                        <Label for="org_id"
-                            >EngageSPARK Organization ID *</Label
-                        >
+                        <Label for="org_id">EngageSPARK Organization ID</Label>
                         <Input
                             id="org_id"
                             name="org_id"
@@ -113,7 +111,6 @@ const breadcrumbItems: BreadcrumbItem[] = [
                                 userConfig?.org_id_masked ||
                                 'Enter your EngageSPARK Organization ID'
                             "
-                            required
                             autocomplete="off"
                         />
                         <InputError :message="errors.org_id" />
@@ -121,8 +118,8 @@ const breadcrumbItems: BreadcrumbItem[] = [
                             v-if="userConfig?.org_id_masked"
                             class="text-sm text-muted-foreground"
                         >
-                            Current: {{ userConfig.org_id_masked }} (enter new
-                            ID to change)
+                            Current: {{ userConfig.org_id_masked }} (leave blank
+                            to keep current)
                         </p>
                     </div>
 
@@ -136,8 +133,8 @@ const breadcrumbItems: BreadcrumbItem[] = [
                         />
                         <InputError :message="errors.sender_ids" />
                         <p class="text-sm text-muted-foreground">
-                            Add all your sender IDs (e.g., cashless, Quezon City).
-                            Press Enter or comma to add each one.
+                            Add all your sender IDs (e.g., cashless, Quezon
+                            City). Press Enter or comma to add each one.
                         </p>
                     </div>
 

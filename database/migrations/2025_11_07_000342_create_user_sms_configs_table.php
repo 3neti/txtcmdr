@@ -20,7 +20,7 @@ return new class extends Migration
             $table->json('sender_ids')->nullable(); // Array of available sender IDs
             $table->boolean('is_active')->default(true);
             $table->timestamps();
-            
+
             $table->unique(['user_id', 'driver']);
         });
     }

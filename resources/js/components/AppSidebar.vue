@@ -14,7 +14,17 @@ import {
 import { dashboard, sendSMS } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { BookOpen, Calendar, FileText, Folder, LayoutGrid, MessageSquare, Send, Upload, Users, UsersRound } from 'lucide-vue-next';
+import {
+    BookOpen,
+    Calendar,
+    FileText,
+    Folder,
+    LayoutGrid,
+    Send,
+    Upload,
+    Users,
+    UsersRound,
+} from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 
 const mainNavItems: NavItem[] = [

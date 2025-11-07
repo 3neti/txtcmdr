@@ -1,9 +1,6 @@
 <script setup lang="ts">
-import AppLayout from '@/layouts/AppLayout.vue';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import {
     Card,
     CardContent,
@@ -11,6 +8,8 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
     Select,
     SelectContent,
@@ -18,11 +17,12 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Textarea } from '@/components/ui/textarea';
+import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, useForm } from '@inertiajs/vue3';
 import { FileUp, Info, Send, Upload, Users } from 'lucide-vue-next';
-import { computed, ref } from 'vue';
+import { computed } from 'vue';
 
 interface Group {
     id: number;
@@ -148,7 +148,11 @@ const remainingChars = computed(() => {
                         <Alert>
                             <Info class="h-4 w-4" />
                             <AlertDescription>
-                                CSV format: <code class="font-mono text-xs">mobile, name (optional), email (optional)</code>
+                                CSV format:
+                                <code class="font-mono text-xs"
+                                    >mobile, name (optional), email
+                                    (optional)</code
+                                >
                             </AlertDescription>
                         </Alert>
 
@@ -170,7 +174,9 @@ const remainingChars = computed(() => {
                         </div>
 
                         <div v-if="groups.length > 0">
-                            <Label for="import-group">Assign to Group (Optional)</Label>
+                            <Label for="import-group"
+                                >Assign to Group (Optional)</Label
+                            >
                             <Select v-model="importForm.group_id">
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select a group" />
@@ -189,7 +195,11 @@ const remainingChars = computed(() => {
 
                         <Button type="submit" :disabled="importForm.processing">
                             <Upload class="mr-2 h-4 w-4" />
-                            {{ importForm.processing ? 'Importing...' : 'Import Contacts' }}
+                            {{
+                                importForm.processing
+                                    ? 'Importing...'
+                                    : 'Import Contacts'
+                            }}
                         </Button>
                     </form>
                 </CardContent>
@@ -211,7 +221,9 @@ const remainingChars = computed(() => {
                         <Alert>
                             <Info class="h-4 w-4" />
                             <AlertDescription>
-                                Upload a file with phone numbers and send the same message to all. Column name: <code class="font-mono text-xs">mobile</code>
+                                Upload a file with phone numbers and send the
+                                same message to all. Column name:
+                                <code class="font-mono text-xs">mobile</code>
                             </AlertDescription>
                         </Alert>
 
@@ -242,9 +254,14 @@ const remainingChars = computed(() => {
                                 maxlength="1600"
                                 required
                             />
-                            <div class="mt-1 flex justify-between text-xs text-muted-foreground">
+                            <div
+                                class="mt-1 flex justify-between text-xs text-muted-foreground"
+                            >
                                 <span>{{ messageCount }} SMS</span>
-                                <span>{{ remainingChars }} characters remaining</span>
+                                <span
+                                    >{{ remainingChars }} characters
+                                    remaining</span
+                                >
                             </div>
                             <p
                                 v-if="bulkSendForm.errors.message"
@@ -272,9 +289,16 @@ const remainingChars = computed(() => {
                             </Select>
                         </div>
 
-                        <Button type="submit" :disabled="bulkSendForm.processing">
+                        <Button
+                            type="submit"
+                            :disabled="bulkSendForm.processing"
+                        >
                             <Send class="mr-2 h-4 w-4" />
-                            {{ bulkSendForm.processing ? 'Sending...' : 'Send to All' }}
+                            {{
+                                bulkSendForm.processing
+                                    ? 'Sending...'
+                                    : 'Send to All'
+                            }}
                         </Button>
                     </form>
                 </CardContent>
@@ -297,10 +321,37 @@ const remainingChars = computed(() => {
                             <Info class="h-4 w-4" />
                             <AlertDescription>
                                 <div class="space-y-1 text-sm">
-                                    <p><strong>Format 1 (2 columns):</strong> <code class="font-mono text-xs">mobile, message</code></p>
-                                    <p><strong>Format 2 (3 columns):</strong> <code class="font-mono text-xs">mobile, name, message</code></p>
-                                    <p class="mt-2">Use variables: <code class="font-mono text-xs" v-text="'{{name}}'"></code>, <code class="font-mono text-xs" v-text="'{{mobile}}'"></code></p>
-                                    <p class="text-xs text-muted-foreground">Example: "Hi <span v-text="'{{name}}'"></span>! Your account <span v-text="'{{mobile}}'"></span> is active."</p>
+                                    <p>
+                                        <strong>Format 1 (2 columns):</strong>
+                                        <code class="font-mono text-xs"
+                                            >mobile, message</code
+                                        >
+                                    </p>
+                                    <p>
+                                        <strong>Format 2 (3 columns):</strong>
+                                        <code class="font-mono text-xs"
+                                            >mobile, name, message</code
+                                        >
+                                    </p>
+                                    <p class="mt-2">
+                                        Use variables:
+                                        <code
+                                            class="font-mono text-xs"
+                                            v-text="'{{name}}'"
+                                        ></code
+                                        >,
+                                        <code
+                                            class="font-mono text-xs"
+                                            v-text="'{{mobile}}'"
+                                        ></code>
+                                    </p>
+                                    <p class="text-xs text-muted-foreground">
+                                        Example: "Hi
+                                        <span v-text="'{{name}}'"></span>! Your
+                                        account
+                                        <span v-text="'{{mobile}}'"></span> is
+                                        active."
+                                    </p>
                                 </div>
                             </AlertDescription>
                         </Alert>
@@ -347,14 +398,24 @@ const remainingChars = computed(() => {
                                 v-model="personalizedForm.import_contacts"
                                 class="h-4 w-4"
                             />
-                            <Label for="import-contacts-checkbox" class="cursor-pointer">
+                            <Label
+                                for="import-contacts-checkbox"
+                                class="cursor-pointer"
+                            >
                                 Also import contacts from file
                             </Label>
                         </div>
 
-                        <Button type="submit" :disabled="personalizedForm.processing">
+                        <Button
+                            type="submit"
+                            :disabled="personalizedForm.processing"
+                        >
                             <Send class="mr-2 h-4 w-4" />
-                            {{ personalizedForm.processing ? 'Sending...' : 'Send Personalized Messages' }}
+                            {{
+                                personalizedForm.processing
+                                    ? 'Sending...'
+                                    : 'Send Personalized Messages'
+                            }}
                         </Button>
                     </form>
                 </CardContent>

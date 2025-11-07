@@ -1,16 +1,23 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
 import InputError from '@/components/InputError.vue';
+import TagInput from '@/components/TagInput.vue';
 import TextLink from '@/components/TextLink.vue';
-import HeadingSmall from '@/components/HeadingSmall.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
 import AuthBase from '@/layouts/AuthLayout.vue';
 import { login } from '@/routes';
 import { store } from '@/routes/register';
 import { Form, Head } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
 
 interface Props {
     smsConfigMode: 'optional' | 'required' | 'disabled';
@@ -19,6 +26,8 @@ interface Props {
 const props = defineProps<Props>();
 
 const step = ref(1);
+const senderIds = ref<string[]>([]);
+const defaultSenderId = ref<string>('');
 
 // Computed properties based on mode
 const showSmsStep = computed(() => props.smsConfigMode !== 'disabled');
@@ -48,7 +57,10 @@ const goBackToBasicInfo = () => {
         <Head title="Register" />
 
         <!-- Step indicator -->
-        <div v-if="showSmsStep" class="mb-4 flex items-center justify-center gap-2">
+        <div
+            v-if="showSmsStep"
+            class="mb-4 flex items-center justify-center gap-2"
+        >
             <div
                 class="flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium"
                 :class="
@@ -165,7 +177,9 @@ const goBackToBasicInfo = () => {
                 <div class="grid gap-2">
                     <Label for="sms_api_key">
                         EngageSPARK API Key
-                        <span v-if="smsRequired" class="text-destructive">*</span>
+                        <span v-if="smsRequired" class="text-destructive"
+                            >*</span
+                        >
                     </Label>
                     <Input
                         id="sms_api_key"
@@ -181,7 +195,9 @@ const goBackToBasicInfo = () => {
                 <div class="grid gap-2">
                     <Label for="sms_org_id">
                         EngageSPARK Organization ID
-                        <span v-if="smsRequired" class="text-destructive">*</span>
+                        <span v-if="smsRequired" class="text-destructive"
+                            >*</span
+                        >
                     </Label>
                     <Input
                         id="sms_org_id"
@@ -194,32 +210,65 @@ const goBackToBasicInfo = () => {
                     <InputError :message="errors.sms_org_id" />
                 </div>
 
-                <div class="grid gap-2">
-                    <Label for="sms_default_sender_id">
-                        Default Sender ID
-                        <span v-if="smsRequired" class="text-destructive">*</span>
-                    </Label>
-                    <Input
-                        id="sms_default_sender_id"
-                        name="sms_default_sender_id"
-                        :required="smsRequired"
-                        placeholder="e.g., cashless, Quezon City"
-                    />
-                    <InputError :message="errors.sms_default_sender_id" />
-                </div>
-
+                <!-- Sender IDs (define all first) -->
                 <div class="grid gap-2">
                     <Label for="sms_sender_ids">
-                        Additional Sender IDs (comma-separated)
+                        Sender IDs
+                        <span v-if="smsRequired" class="text-destructive"
+                            >*</span
+                        >
                     </Label>
-                    <Input
-                        id="sms_sender_ids"
+                    <TagInput
+                        v-model="senderIds"
                         name="sms_sender_ids"
-                        placeholder="sender1, sender2, sender3"
+                        placeholder="Type sender ID and press Enter or comma"
                     />
                     <InputError :message="errors.sms_sender_ids" />
                     <p class="text-sm text-muted-foreground">
-                        Optional. List alternative sender IDs you can use.
+                        Add all your sender IDs (e.g., cashless, Quezon City).
+                        Press Enter or comma to add each one.
+                    </p>
+                </div>
+
+                <!-- Default Sender ID (pick from above) -->
+                <div class="grid gap-2">
+                    <Label for="sms_default_sender_id">
+                        Default Sender ID
+                        <span v-if="smsRequired" class="text-destructive"
+                            >*</span
+                        >
+                    </Label>
+                    <Select
+                        v-model="defaultSenderId"
+                        :disabled="senderIds.length === 0"
+                    >
+                        <SelectTrigger>
+                            <SelectValue
+                                :placeholder="
+                                    senderIds.length > 0
+                                        ? 'Select default sender ID'
+                                        : 'Add sender IDs above first'
+                                "
+                            />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem
+                                v-for="senderId in senderIds"
+                                :key="senderId"
+                                :value="senderId"
+                            >
+                                {{ senderId }}
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <input
+                        type="hidden"
+                        name="sms_default_sender_id"
+                        :value="defaultSenderId"
+                    />
+                    <InputError :message="errors.sms_default_sender_id" />
+                    <p class="text-sm text-muted-foreground">
+                        Choose which sender ID to use by default.
                     </p>
                 </div>
 

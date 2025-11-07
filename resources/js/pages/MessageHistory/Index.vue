@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import AppLayout from '@/layouts/AppLayout.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -9,9 +8,16 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
-import { Clock, Download, MessageSquare, RefreshCw, Search } from 'lucide-vue-next';
+import {
+    Clock,
+    Download,
+    MessageSquare,
+    RefreshCw,
+    Search,
+} from 'lucide-vue-next';
 import { ref, watch } from 'vue';
 
 interface Contact {
@@ -81,7 +87,7 @@ const applyFilters = () => {
         {
             preserveState: true,
             preserveScroll: true,
-        }
+        },
     );
 };
 
@@ -89,7 +95,8 @@ const getStatusBadgeClass = (status: string) => {
     const classes = {
         sent: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
         failed: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
-        pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
+        pending:
+            'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
     };
     return classes[status as keyof typeof classes] || classes.pending;
 };
@@ -105,7 +112,7 @@ const formatRecipient = (log: MessageLog) => {
     const phone = formatPhone(log.recipient);
     // Name is appended directly on the contact object (from meta JSON column)
     const contactName = log.contact_with_name?.name;
-    
+
     return contactName ? `${contactName} (${phone})` : phone;
 };
 
@@ -154,7 +161,7 @@ const exportToCSV = () => {
     if (search.value) {
         params.append('search', search.value);
     }
-    
+
     const url = `/message-history/export${params.toString() ? '?' + params.toString() : ''}`;
     window.location.href = url;
 };
@@ -174,11 +181,7 @@ const exportToCSV = () => {
                     </p>
                 </div>
                 <div class="flex items-center gap-4">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        @click="exportToCSV"
-                    >
+                    <Button variant="outline" size="sm" @click="exportToCSV">
                         <Download class="mr-2 h-4 w-4" />
                         Export to CSV
                     </Button>
@@ -191,7 +194,9 @@ const exportToCSV = () => {
             <!-- Filters -->
             <div class="flex flex-col gap-4 sm:flex-row">
                 <div class="relative flex-1">
-                    <Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Search
+                        class="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+                    />
                     <Input
                         v-model="search"
                         placeholder="Search by recipient or message..."
@@ -241,17 +246,23 @@ const exportToCSV = () => {
 
                             <!-- Error Message (if failed) -->
                             <div
-                                v-if="log.status === 'failed' && log.error_message"
+                                v-if="
+                                    log.status === 'failed' && log.error_message
+                                "
                                 class="rounded-md bg-destructive/10 p-2 text-xs text-destructive"
                             >
                                 <strong>Error:</strong> {{ log.error_message }}
                             </div>
 
                             <!-- Timestamps -->
-                            <div class="flex gap-4 text-xs text-muted-foreground">
+                            <div
+                                class="flex gap-4 text-xs text-muted-foreground"
+                            >
                                 <div class="flex items-center gap-1">
                                     <Clock class="h-3 w-3" />
-                                    <span>{{ formatRelativeTime(log.created_at) }}</span>
+                                    <span>{{
+                                        formatRelativeTime(log.created_at)
+                                    }}</span>
                                 </div>
                                 <div v-if="log.sent_at">
                                     Sent: {{ formatDateTime(log.sent_at) }}
@@ -273,7 +284,9 @@ const exportToCSV = () => {
                                 <RefreshCw class="mr-2 h-4 w-4" />
                                 Retry
                             </Button>
-                            <MessageSquare class="h-5 w-5 text-muted-foreground" />
+                            <MessageSquare
+                                class="h-5 w-5 text-muted-foreground"
+                            />
                         </div>
                     </div>
                 </div>
@@ -299,9 +312,7 @@ const exportToCSV = () => {
                             : 'Send your first SMS to see it here'
                     }}
                 </p>
-                <Button @click="router.visit('/send-sms')">
-                    Send SMS
-                </Button>
+                <Button @click="router.visit('/send-sms')"> Send SMS </Button>
             </div>
 
             <!-- Pagination -->

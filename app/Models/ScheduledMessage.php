@@ -4,10 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ScheduledMessage extends Model
 {
     protected $fillable = [
+        'user_id',
         'message',
         'sender_id',
         'recipient_type',
@@ -27,6 +29,12 @@ class ScheduledMessage extends Model
         'scheduled_at' => 'datetime',
         'sent_at' => 'datetime',
     ];
+
+    // Relationships
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
 
     // Scopes
     public function scopePending($query)

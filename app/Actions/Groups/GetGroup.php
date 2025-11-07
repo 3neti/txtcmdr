@@ -10,11 +10,13 @@ class GetGroup
 {
     use AsAction;
 
-    public function handle(int $id): Group
+    public function handle(int $id, ?int $userId = null): Group
     {
-        return Group::with('contacts')
+        return Group::where('user_id', $userId ?? auth()->id())
+            ->where('id', $id)
+            ->with('contacts')
             ->withCount('contacts')
-            ->findOrFail($id);
+            ->firstOrFail();
     }
 
     public function asController(int $id): JsonResponse

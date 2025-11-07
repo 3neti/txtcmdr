@@ -85,6 +85,7 @@ test('it marks log as failed when SMS sending fails', function () {
 test('it associates log with scheduled message when provided', function () {
     // Create a scheduled message first
     $scheduledMessage = \App\Models\ScheduledMessage::create([
+        'user_id' => $this->user->id,
         'message' => 'Test message',
         'sender_id' => 'TXTCMDR',
         'recipient_type' => 'numbers',

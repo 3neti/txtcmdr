@@ -50,7 +50,7 @@ class SendSMSJob implements ShouldQueue
 
         // Create message log
         $log = MessageLog::create([
-            'user_id' => auth()->id() ?? 1, // Fallback to admin if no auth context
+            'user_id' => $this->userId ?? auth()->id() ?? 1, // Use passed userId, fallback to auth, then admin
             'recipient' => $e164Mobile,
             'message' => $this->message,
             'status' => 'pending',

@@ -21,8 +21,8 @@ class SmsConfigController extends Controller
         return Inertia::render('settings/SmsConfig', [
             'userConfig' => $userConfig ? [
                 // Send masked versions as placeholders for visibility
-                'api_key_masked' => $userConfig->hasRequiredCredentials() ? '••••••••' . substr($userConfig->getCredential('api_key'), -4) : null,
-                'org_id_masked' => $userConfig->hasRequiredCredentials() ? '••••••••' . substr($userConfig->getCredential('org_id'), -4) : null,
+                'api_key_masked' => $userConfig->hasRequiredCredentials() ? '••••••••'.substr($userConfig->getCredential('api_key'), -4) : null,
+                'org_id_masked' => $userConfig->hasRequiredCredentials() ? '••••••••'.substr($userConfig->getCredential('org_id'), -4) : null,
                 'default_sender_id' => $userConfig->default_sender_id,
                 'sender_ids' => $userConfig->sender_ids ?? [],
                 'is_active' => $userConfig->is_active,
@@ -48,16 +48,20 @@ class SmsConfigController extends Controller
             );
         }
 
+        // Get existing config to preserve credentials if not provided
+        $existingConfig = $user->smsConfig('engagespark');
+        $credentials = [
+            'api_key' => $request->filled('api_key') ? $request->input('api_key') : ($existingConfig?->getCredential('api_key') ?? null),
+            'org_id' => $request->filled('org_id') ? $request->input('org_id') : ($existingConfig?->getCredential('org_id') ?? null),
+        ];
+
         UserSmsConfig::updateOrCreate(
             [
                 'user_id' => $user->id,
                 'driver' => 'engagespark',
             ],
             [
-                'credentials' => [
-                    'api_key' => $request->input('api_key'),
-                    'org_id' => $request->input('org_id'),
-                ],
+                'credentials' => $credentials,
                 'default_sender_id' => $request->input('default_sender_id'),
                 'sender_ids' => $senderIds,
                 'is_active' => $request->boolean('is_active', true),
