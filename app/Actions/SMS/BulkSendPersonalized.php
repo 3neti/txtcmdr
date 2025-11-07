@@ -106,7 +106,13 @@ class BulkSendPersonalized
     public function rules(): array
     {
         return [
-            'file' => 'required|file|mimes:csv,xlsx,xls|max:5120', // 5MB max
+            'file' => [
+                'required',
+                'file',
+                'mimes:csv,txt,xlsx,xls',
+                'mimetypes:text/plain,text/csv,application/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel.sheet.macroenabled.12',
+                'max:5120',
+            ],
             'sender_id' => 'required|string',
             'import_contacts' => 'nullable|boolean',
         ];

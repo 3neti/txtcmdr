@@ -34,7 +34,13 @@ class ImportContactsFromFile
     public function rules(): array
     {
         return [
-            'file' => 'required|file|mimes:csv,xlsx,xls|max:10240', // 10MB max
+            'file' => [
+                'required',
+                'file',
+                'mimes:csv,txt,xlsx,xls',
+                'mimetypes:text/plain,text/csv,application/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel.sheet.macroenabled.12',
+                'max:10240', // 10MB max
+            ],
             'group_id' => 'nullable|exists:groups,id',
             'column_mapping' => 'nullable|array',
         ];

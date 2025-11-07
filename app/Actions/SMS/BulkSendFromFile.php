@@ -62,7 +62,15 @@ class BulkSendFromFile
     public function rules(): array
     {
         return [
-            'file' => 'required|file|mimes:csv,xlsx,xls|max:5120', // 5MB max
+            'file' => [
+                'required',
+                'file',
+                // Allow common CSV and Excel extensions
+                'mimes:csv,txt,xlsx,xls',
+                // And their MIME types as reported by different browsers
+                'mimetypes:text/plain,text/csv,application/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel.sheet.macroenabled.12',
+                'max:5120', // 5MB
+            ],
             'message' => 'required|string|max:1600',
             'sender_id' => 'required|string',
             'mobile_column' => 'nullable|string',

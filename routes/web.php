@@ -319,7 +319,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('contacts/import', function (Request $request) {
         try {
             $request->validate([
-                'file' => 'required|file|mimes:csv,xlsx,xls',
+                'file' => [
+                    'required', 'file',
+                    'mimes:csv,txt,xlsx,xls',
+                    'mimetypes:text/plain,text/csv,application/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel.sheet.macroenabled.12',
+                ],
                 'group_id' => 'nullable|exists:groups,id',
             ]);
 
@@ -403,7 +407,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('bulk/send', function (Request $request) {
         try {
             $request->validate([
-                'file' => 'required|file|mimes:csv,xlsx,xls',
+                'file' => [
+                    'required', 'file',
+                    'mimes:csv,txt,xlsx,xls',
+                    'mimetypes:text/plain,text/csv,application/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel.sheet.macroenabled.12',
+                ],
                 'message' => 'required|string|max:1600',
                 'sender_id' => 'required|string',
                 'mobile_column' => 'nullable|string',
@@ -433,7 +441,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('bulk/send-personalized', function (Request $request) {
         try {
             $request->validate([
-                'file' => 'required|file|mimes:csv,xlsx,xls',
+                'file' => [
+                    'required', 'file',
+                    'mimes:csv,txt,xlsx,xls',
+                    'mimetypes:text/plain,text/csv,application/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel.sheet.macroenabled.12',
+                ],
                 'sender_id' => 'required|string',
                 'import_contacts' => 'boolean',
             ]);
