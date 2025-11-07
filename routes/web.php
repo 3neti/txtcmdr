@@ -70,9 +70,24 @@ Route::get('dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::get('send-sms', function () {
+    $user = auth()->user();
+    $smsConfig = $user->smsConfig('engagespark');
+
+    // Redirect to settings if user doesn't have active SMS config
+    if (! $smsConfig || ! $smsConfig->is_active || ! $smsConfig->hasRequiredCredentials()) {
+        return redirect()->route('sms-config.edit')
+            ->with('error', 'Please configure your SMS account before sending messages.');
+    }
+
+    // Build sender IDs array from user's config
+    $senderIds = array_merge(
+        [$smsConfig->default_sender_id],
+        $smsConfig->sender_ids ?? []
+    );
+
     return Inertia::render('SendSMS', [
-        'senderIds' => config('sms.sender_ids'),
-        'defaultSenderId' => config('sms.default_sender_id'),
+        'senderIds' => array_unique($senderIds),
+        'defaultSenderId' => $smsConfig->default_sender_id,
         'recipientsPlaceholder' => config('sms.recipients_placeholder'),
         'messagePlaceholder' => config('sms.message_placeholder'),
     ]);

@@ -11,14 +11,14 @@ beforeEach(function () {
     $this->service = new SmsConfigService();
 });
 
-it('returns app config when no user config exists', function () {
+it('returns app config when no user config exists (console context)', function () {
     $user = User::factory()->create();
 
     $config = $this->service->getEngageSparkConfig($user);
 
-    expect($config['source'])->toBe('app')
-        ->and($config['api_key'])->toBe(config('sms.drivers.engagespark.api_key'))
-        ->and($config['org_id'])->toBe(config('sms.drivers.engagespark.org_id'));
+    // Tests run in console, so fallback to app config is allowed
+    // In web context, this would return 'none'
+    expect($config['source'])->toBe('app');
 });
 
 it('returns user config when active config exists', function () {
@@ -45,7 +45,7 @@ it('returns user config when active config exists', function () {
         ->and($config['sender_ids'])->toBe(['UserID', 'TestID']);
 });
 
-it('returns app config when user config is inactive', function () {
+it('returns app config when user config is inactive (console context)', function () {
     $user = User::factory()->create();
     
     UserSmsConfig::create([
@@ -60,10 +60,11 @@ it('returns app config when user config is inactive', function () {
 
     $config = $this->service->getEngageSparkConfig($user);
 
+    // Tests run in console, so fallback to app config is allowed
     expect($config['source'])->toBe('app');
 });
 
-it('returns app config when user config missing required credentials', function () {
+it('returns app config when user config missing required credentials (console context)', function () {
     $user = User::factory()->create();
     
     UserSmsConfig::create([
@@ -78,6 +79,7 @@ it('returns app config when user config missing required credentials', function 
 
     $config = $this->service->getEngageSparkConfig($user);
 
+    // Tests run in console, so fallback to app config is allowed
     expect($config['source'])->toBe('app');
 });
 

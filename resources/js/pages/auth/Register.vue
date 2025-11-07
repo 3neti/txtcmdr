@@ -83,7 +83,7 @@ const goBackToBasicInfo = () => {
             class="flex flex-col gap-6"
         >
             <!-- Step 1: Basic Info -->
-            <div v-if="step === 1" class="grid gap-6">
+            <div v-show="step === 1" class="grid gap-6">
                 <div class="grid gap-2">
                     <Label for="name">Name</Label>
                     <Input
@@ -166,7 +166,7 @@ const goBackToBasicInfo = () => {
             </div>
 
             <!-- Step 2: SMS Config (if not disabled) -->
-            <div v-if="step === 2 && showSmsStep" class="grid gap-6">
+            <div v-show="step === 2 && showSmsStep" class="grid gap-6">
                 <div class="grid gap-2">
                     <Label for="sms_api_key">
                         EngageSPARK API Key

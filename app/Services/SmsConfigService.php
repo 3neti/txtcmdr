@@ -8,7 +8,10 @@ use App\Models\UserSmsConfig;
 class SmsConfigService
 {
     /**
-     * Get SMS configuration with user override → app config fallback
+     * Get SMS configuration with user override → app config fallback (CLI only)
+     * 
+     * For web requests, users MUST have their own SMS config.
+     * Fallback to .env only applies for console/artisan commands.
      */
     public function getConfigForUser(?User $user = null, ?string $driver = null): array
     {
@@ -33,13 +36,25 @@ class SmsConfigService
             }
         }
 
-        // Fallback to app config
+        // Fallback to app config ONLY for console/artisan commands
+        // Web users MUST configure their own SMS settings
+        if (app()->runningInConsole()) {
+            return [
+                'driver' => $driver,
+                'credentials' => config("sms.drivers.{$driver}", []),
+                'default_sender_id' => config('sms.default_sender_id'),
+                'sender_ids' => config('sms.sender_ids'),
+                'source' => 'app',
+            ];
+        }
+
+        // No config available for web user
         return [
             'driver' => $driver,
-            'credentials' => config("sms.drivers.{$driver}", []),
-            'default_sender_id' => config('sms.default_sender_id'),
-            'sender_ids' => config('sms.sender_ids'),
-            'source' => 'app',
+            'credentials' => [],
+            'default_sender_id' => null,
+            'sender_ids' => [],
+            'source' => 'none',
         ];
     }
 
