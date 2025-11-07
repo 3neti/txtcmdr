@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { dashboard, login, register } from '@/routes';
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, usePage } from '@inertiajs/vue3';
 import { BarChart3, Clock, MessageSquare, Users } from 'lucide-vue-next';
+import { computed } from 'vue';
 
 withDefaults(
     defineProps<{
@@ -11,6 +12,18 @@ withDefaults(
         canRegister: true,
     },
 );
+
+const page = usePage();
+
+const version = computed(() => page.props.version as {
+    version: string;
+    frameworks: {
+        laravel: string;
+        php: string;
+        vue: string;
+        inertia: string;
+    };
+});
 
 const features = [
     {
@@ -158,10 +171,14 @@ const features = [
             <div
                 class="mx-auto max-w-7xl px-6 text-center text-sm text-slate-600 dark:text-slate-400"
             >
-                <p>
-                    © {{ new Date().getFullYear() }} Text Commander. Built with
-                    Laravel & Vue.
-                </p>
+                <div class="flex flex-col items-center gap-2">
+                    <p>
+                        © {{ new Date().getFullYear() }} Text Commander {{ version.version }}
+                    </p>
+                    <p class="text-xs">
+                        Built with Laravel {{ version.frameworks.laravel }} · Vue {{ version.frameworks.vue }} · Inertia {{ version.frameworks.inertia }}
+                    </p>
+                </div>
             </div>
         </footer>
     </div>
