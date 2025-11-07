@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->string('driver')->default('engagespark');
-            $table->json('credentials')->nullable(); // Encrypted driver-specific credentials
+            $table->text('credentials')->nullable(); // Encrypted driver-specific credentials (text, not json)
             $table->string('default_sender_id')->nullable();
             $table->json('sender_ids')->nullable(); // Array of available sender IDs
             $table->boolean('is_active')->default(true);
