@@ -38,10 +38,37 @@ class Contact extends BaseContact
             ->withTimestamps();
     }
 
-    // Accessor: Get E.164 formatted mobile
+    /**
+     * Override base package's mobile attribute to use E.164 format
+     * The base package uses formatForMobileDialingInCountry() which returns local format (0917...)
+     * We need E.164 format (+63917...) for consistency and unique constraints
+     */
+    protected function mobile(): \Illuminate\Database\Eloquent\Casts\Attribute
+    {
+        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+            get: function ($value, $attributes) {
+                $country = $attributes['country'] ?? 'PH';
+                try {
+                    return phone($value, $country)->formatE164();
+                } catch (\Exception $e) {
+                    return $value;
+                }
+            },
+            set: function ($value) {
+                $country = $this->country ?? 'PH';
+                try {
+                    return phone($value, $country)->formatE164();
+                } catch (\Exception $e) {
+                    return $value;
+                }
+            }
+        );
+    }
+
+    // Accessor: Get E.164 formatted mobile (kept for backward compatibility)
     public function getE164MobileAttribute(): string
     {
-        return (new PhoneNumber($this->mobile, 'PH'))->formatE164();
+        return $this->mobile; // Now mobile itself is E.164
     }
 
     // Note: fromPhoneNumber() is already provided by HasMobile trait
