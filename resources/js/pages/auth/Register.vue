@@ -42,9 +42,7 @@ const goBackToBasicInfo = () => {
         :description="
             step === 1
                 ? 'Enter your details below to create your account'
-                : smsRequired
-                  ? 'Configure your SMS account to complete registration'
-                  : 'Configure your SMS account now, or skip to use our shared account'
+                : 'Configure your SMS account to complete registration'
         "
     >
         <Head title="Register" />
@@ -147,7 +145,6 @@ const goBackToBasicInfo = () => {
                     @click="goToSmsStep"
                 >
                     Next: SMS Configuration
-                    {{ smsRequired ? '(Required)' : '(Optional)' }}
                 </Button>
 
                 <Button

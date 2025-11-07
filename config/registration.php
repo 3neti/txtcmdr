@@ -6,16 +6,12 @@ return [
     | SMS Configuration Requirement During Registration
     |--------------------------------------------------------------------------
     |
-    | This option controls whether SMS configuration is required, optional,
-    | or disabled during user registration.
+    | SMS configuration is REQUIRED during registration (Option A architecture).
+    | Users must provide their own EngageSPARK credentials to use the application.
     |
-    | Supported: "optional", "required", "disabled"
-    |
-    | - optional: Users can skip SMS config and use application defaults
-    | - required: Users must provide their own SMS credentials to register
-    | - disabled: SMS configuration step is completely hidden
+    | This ensures proper multi-tenancy and each user uses their own SMS account.
     |
     */
 
-    'sms_config' => env('REGISTRATION_SMS_CONFIG', 'optional'),
+    'sms_config' => 'required', // Hardcoded for Option A architecture
 ];
