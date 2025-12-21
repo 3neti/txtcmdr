@@ -17,7 +17,7 @@ class OtpController extends Controller
         $res = $otp->requestOtp(
             mobileE164: $request->input('mobile'),
             purpose: $request->input('purpose', 'login'),
-            userId: optional($request->user())->id,
+            userId: $request->user()->id,
             externalRef: $request->input('external_ref'),
             meta: (array) $request->input('meta', []),
             requestIp: $request->ip(),
