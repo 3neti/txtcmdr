@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Settings\OtpConfigController;
 use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\SmsConfigController;
@@ -30,4 +31,7 @@ Route::middleware('auth')->group(function () {
     Route::get('settings/sms', [SmsConfigController::class, 'edit'])->name('sms-config.edit');
     Route::put('settings/sms', [SmsConfigController::class, 'update'])->name('sms-config.update');
     Route::delete('settings/sms', [SmsConfigController::class, 'destroy'])->name('sms-config.destroy');
+
+    Route::get('settings/otp', [OtpConfigController::class, 'edit'])->name('otp-config.edit');
+    Route::put('settings/otp', [OtpConfigController::class, 'update'])->name('otp-config.update');
 });

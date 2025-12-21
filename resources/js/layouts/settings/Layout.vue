@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { toUrl, urlIsActive } from '@/lib/utils';
 import { edit as editAppearance } from '@/routes/appearance';
+import { edit as editOtpConfig } from '@/routes/otp-config';
 import { edit as editProfile } from '@/routes/profile';
 import { edit as editSmsConfig } from '@/routes/sms-config';
 import { show } from '@/routes/two-factor';
@@ -27,6 +28,10 @@ const sidebarNavItems: NavItem[] = [
     {
         title: 'SMS',
         href: editSmsConfig(),
+    },
+    {
+        title: 'OTP',
+        href: editOtpConfig(),
     },
     {
         title: 'Appearance',
