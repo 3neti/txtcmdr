@@ -5,7 +5,6 @@ namespace App\Console\Commands;
 use App\Models\User;
 use App\Services\Otp\OtpService;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Http;
 use Propaganistas\LaravelPhone\PhoneNumber;
 
 class TestOtpCommand extends Command
@@ -32,17 +31,16 @@ class TestOtpCommand extends Command
         $this->info('🔐 OTP Test Command');
         $this->newLine();
 
-        // Get admin user and create token
-        $user = User::where('email', 'admin@disburse.cash')->first();
+        // Get user whose SMS credentials to use
+        $userEmail = $this->option('user') ?? 'admin@disburse.cash';
+        $user = User::where('email', $userEmail)->first();
+        
         if (! $user) {
-            $this->error('Admin user (admin@disburse.cash) not found!');
-
+            $this->error("User ({$userEmail}) not found!");
             return self::FAILURE;
         }
 
-        // Create API token for admin
-        $token = $user->createToken('otp-test-'.now()->timestamp)->plainTextToken;
-        $this->info("Authenticated as: {$user->name} ({$user->email})");
+        $this->info("Using SMS credentials from: {$user->name} ({$user->email})");
         $this->newLine();
 
         // Get mobile number
@@ -57,93 +55,67 @@ class TestOtpCommand extends Command
             $e164Mobile = $phone->formatE164();
         } catch (\Exception $e) {
             $this->error("Invalid mobile number: {$mobile}");
-
             return self::FAILURE;
         }
 
         $this->info("📱 Sending OTP to: {$e164Mobile}");
         $this->newLine();
 
-        // Request OTP via API
-        $this->info('📡 Requesting OTP via API...');
+        // Request OTP directly via service
+        $this->info('🔄 Generating and sending OTP...');
         $this->newLine();
 
         try {
-            $response = Http::withToken($token)
-                ->post(config('app.url').'/api/otp/request', [
-                    'mobile' => $e164Mobile,
-                    'purpose' => 'test',
-                ]);
+            $result = $otpService->requestOtp(
+                mobileE164: $e164Mobile,
+                purpose: 'test',
+                userId: $user->id,
+                requestIp: null,
+                userAgent: 'otp:test command'
+            );
 
-            if (! $response->successful()) {
-                $this->error('API request failed: '.$response->status());
-                $this->line($response->body());
-
-                return self::FAILURE;
-            }
-
-            $data = $response->json();
-            $verificationId = $data['verification_id'];
-            $expiresIn = $data['expires_in'];
-            $devCode = $data['dev_code'] ?? null;
+            $verification = $result['verification'];
+            $code = $result['code'];
+            $expiresIn = $result['expires_in'];
         } catch (\Exception $e) {
             $this->error("Failed to request OTP: {$e->getMessage()}");
-
             return self::FAILURE;
         }
 
         // Show dev code in local/testing environments
-        if ($devCode) {
-            $this->warn("[DEV] OTP Code: {$devCode}");
+        if (app()->environment(['local', 'testing'])) {
+            $this->warn("[DEV] OTP Code: {$code}");
             $this->newLine();
         }
 
-        $this->info("✅ OTP request sent! Valid for {$expiresIn} seconds.");
+        $this->info("✅ OTP sent! Valid for {$expiresIn} seconds.");
         $this->info('📱 Check your phone for the SMS...');
         $this->newLine();
 
         // Wait for user to enter OTP
-        $code = $this->ask('Enter the OTP code you received');
+        $enteredCode = trim($this->ask('Enter the OTP code you received'));
 
-        if (! $code) {
+        if (! $enteredCode) {
             $this->error('No code entered. Exiting.');
-
             return self::FAILURE;
         }
 
         $this->info('🔄 Verifying OTP...');
         $this->newLine();
 
-        // Verify OTP via API
+        // Verify OTP directly via service
         try {
-            $response = Http::withToken($token)
-                ->post(config('app.url').'/api/otp/verify', [
-                    'verification_id' => $verificationId,
-                    'code' => $code,
-                ]);
-
-            if (! $response->successful()) {
-                $this->error('API verification failed: '.$response->status());
-                $this->line($response->body());
-
-                return self::FAILURE;
-            }
-
-            $verifyResult = $response->json();
+            $verifyResult = $otpService->verifyOtp($verification->id, $enteredCode);
         } catch (\Exception $e) {
             $this->error("Verification failed: {$e->getMessage()}");
-
             return self::FAILURE;
         }
-
-        // Clean up the token
-        $user->tokens()->where('name', 'like', 'otp-test-%')->delete();
 
         // Display result
         if ($verifyResult['ok']) {
             $this->info('✅ SUCCESS! OTP verified correctly.');
             $this->newLine();
-            $this->line("Verification ID: {$verificationId}");
+            $this->line("Verification ID: {$verification->id}");
             $this->line("Status: {$verifyResult['reason']}");
 
             return self::SUCCESS;

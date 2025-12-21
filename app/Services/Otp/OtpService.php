@@ -136,7 +136,9 @@ class OtpService
         ?int $userId
     ): void {
         $message = $this->buildOtpMessage($code, $verification->purpose, $ttl);
-        $senderId = config('otp.sender_id', config('sms.default_sender_id', 'TXTCMDR'));
+        
+        // Get sender ID from user's SMS config or fall back to OTP config
+        $senderId = $this->getSenderIdForUser($userId);
 
         // Dispatch SMS job
         SendSMSJob::dispatch(
@@ -152,6 +154,30 @@ class OtpService
             'send_count' => $verification->send_count + 1,
             'last_sent_at' => now(),
         ]);
+    }
+
+    /**
+     * Get sender ID for user from their SMS config
+     */
+    private function getSenderIdForUser(?int $userId): string
+    {
+        if ($userId) {
+            $user = User::find($userId);
+            if ($user) {
+                $smsConfigService = app(SmsConfigService::class);
+                $config = $smsConfigService->getEngageSparkConfig($user);
+                
+                // Use user's default sender ID if available
+                if ($config['default_sender_id']) {
+                    return $config['default_sender_id'];
+                }
+            }
+        }
+
+        // Fall back to OTP-specific sender ID or app default
+        return config('otp.sender_id') 
+            ?? config('sms.default_sender_id') 
+            ?? 'TXTCMDR';
     }
 
     /**
