@@ -13,7 +13,7 @@ class TestOtpCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'otp:test {mobile? : Mobile number to send OTP to}';
+    protected $signature = 'otp:test {mobile? : Mobile number to send OTP to} {--user= : Email of user whose SMS credentials to use}';
 
     /**
      * The console command description.
@@ -29,6 +29,23 @@ class TestOtpCommand extends Command
     {
         $this->info('🔐 OTP Test Command');
         $this->newLine();
+
+        // Get user if specified
+        $userId = null;
+        if ($userEmail = $this->option('user')) {
+            $user = \App\Models\User::where('email', $userEmail)->first();
+            if (! $user) {
+                $this->error("User not found: {$userEmail}");
+
+                return self::FAILURE;
+            }
+            $userId = $user->id;
+            $this->info("Using SMS credentials from: {$user->name} ({$user->email})");
+            $this->newLine();
+        } else {
+            $this->warn('No user specified. Using app-wide SMS credentials from .env');
+            $this->newLine();
+        }
 
         // Get mobile number
         $mobile = $this->argument('mobile');
@@ -54,6 +71,7 @@ class TestOtpCommand extends Command
             $result = $otpService->requestOtp(
                 mobileE164: $e164Mobile,
                 purpose: 'test',
+                userId: $userId,
                 requestIp: '127.0.0.1',
                 userAgent: 'Artisan CLI',
             );

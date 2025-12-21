@@ -125,12 +125,16 @@ php artisan otp:test
 # Test with mobile number provided
 php artisan otp:test "+639173011987"
 
+# Test using a specific user's SMS credentials
+php artisan otp:test "+639173011987" --user=admin@disburse.cash
+
 # The command will:
 # 1. Send OTP code via SMS to the mobile number
-# 2. Display the code in local/testing environments
-# 3. Prompt for code entry
-# 4. Verify the entered code
-# 5. Display success/failure result
+# 2. Use specified user's SMS credentials (or .env defaults if no user specified)
+# 3. Display the code in local/testing environments
+# 4. Prompt for code entry
+# 5. Verify the entered code
+# 6. Display success/failure result
 ```
 
 ### Task Scheduler
