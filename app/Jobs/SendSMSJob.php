@@ -2,9 +2,11 @@
 
 namespace App\Jobs;
 
+use App\Exceptions\SmsConfigurationException;
 use App\Jobs\Middleware\CheckBlacklist;
 use App\Models\MessageLog;
 use App\Services\SmsConfigService;
+use GuzzleHttp\Exception\ClientException;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\InteractsWithQueue;
@@ -64,13 +66,16 @@ class SendSMSJob implements ShouldQueue
             $smsConfigService = app(SmsConfigService::class);
             $config = $smsConfigService->getEngageSparkConfig($user);
 
-            // Set runtime config for EngageSPARK
-            if ($config['api_key'] && $config['org_id']) {
-                config([
-                    'engagespark.api_key' => $config['api_key'],
-                    'engagespark.org_id' => $config['org_id'],
-                ]);
+            // Validate credentials are present
+            if (! $config['api_key'] || ! $config['org_id']) {
+                throw SmsConfigurationException::missingCredentials($this->userId);
             }
+
+            // Set runtime config for EngageSPARK
+            config([
+                'engagespark.api_key' => $config['api_key'],
+                'engagespark.org_id' => $config['org_id'],
+            ]);
 
             // Send SMS using resolved config
             SMS::channel('engagespark')
@@ -81,12 +86,33 @@ class SendSMSJob implements ShouldQueue
 
             // Mark as sent
             $log->markAsSent();
-        } catch (\Exception $e) {
-            // Mark as failed
-            $log->markAsFailed($e->getMessage());
+        } catch (ClientException $e) {
+            // Handle HTTP client errors (401, 403, etc.)
+            $statusCode = $e->getResponse()->getStatusCode();
+            $errorMessage = match ($statusCode) {
+                401 => 'Authentication failed: Invalid or expired API credentials',
+                403 => 'Access forbidden: Check API permissions and account status',
+                429 => 'Rate limit exceeded: Too many requests',
+                default => "HTTP {$statusCode}: ".$e->getMessage(),
+            };
 
-            // Re-throw to trigger job failure handling
+            $log->markAsFailed($errorMessage);
+            
+            // Wrap in more descriptive exception
+            if ($statusCode === 401) {
+                throw SmsConfigurationException::authenticationFailed('EngageSPARK');
+            }
+            
+            throw new \RuntimeException($errorMessage, $statusCode, $e);
+        } catch (SmsConfigurationException $e) {
+            // Handle configuration errors with user-friendly message
+            $log->markAsFailed($e->getMessage());
             throw $e;
+        } catch (\Exception $e) {
+            // Handle all other errors
+            $errorMessage = 'SMS sending failed: '.$e->getMessage();
+            $log->markAsFailed($errorMessage);
+            throw new \RuntimeException($errorMessage, 0, $e);
         }
     }
 }
