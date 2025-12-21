@@ -1,13 +1,18 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3'
+import { computed } from 'vue'
 import AppLayout from '@/layouts/AppLayout.vue'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Download, Key, Lock, CheckCircle2, XCircle, Clock, AlertCircle } from 'lucide-vue-next'
 
+const baseUrl = computed(() => typeof window !== 'undefined' ? window.location.origin : '')
+
 const downloadCollection = () => {
-  window.location.href = '/docs/txtcmdr-otp-api.postman_collection.json'
+  if (typeof window !== 'undefined') {
+    window.location.href = '/docs/txtcmdr-otp-api.postman_collection.json'
+  }
 }
 </script>
 
@@ -82,7 +87,7 @@ echo $token;</code></pre>
           <CardTitle>Base URL</CardTitle>
         </CardHeader>
         <CardContent>
-          <pre class="overflow-x-auto rounded-lg bg-muted p-4 block whitespace-pre"><code>{{ window.location.origin }}/api</code></pre>
+          <pre class="overflow-x-auto rounded-lg bg-muted p-4 block whitespace-pre"><code>{{ baseUrl }}/api</code></pre>
         </CardContent>
       </Card>
 
@@ -122,7 +127,7 @@ echo $token;</code></pre>
 
           <div class="space-y-2">
             <h4 class="font-semibold">Complete Request Example</h4>
-            <pre class="overflow-x-auto rounded-lg bg-muted p-4 block whitespace-pre"><code>curl -X POST {{ window.location.origin }}/api/otp/request \\
+            <pre class="overflow-x-auto rounded-lg bg-muted p-4 block whitespace-pre"><code>curl -X POST {{ baseUrl }}/api/otp/request \\
   -H "Authorization: Bearer 1|abcdef123456..." \
   -H "Content-Type: application/json" \
   -H "Accept: application/json" \
@@ -203,7 +208,7 @@ Accept: application/json</code></pre>
             <!-- Complete Example -->
             <div class="space-y-2">
               <h4 class="font-semibold">Complete curl Example</h4>
-              <pre class="overflow-x-auto rounded-lg bg-muted p-4 block whitespace-pre"><code>curl -X POST {{ window.location.origin }}/api/otp/request \\
+              <pre class="overflow-x-auto rounded-lg bg-muted p-4 block whitespace-pre"><code>curl -X POST {{ baseUrl }}/api/otp/request \\
   -H "Authorization: Bearer 1|abc123def456..." \
   -H "Content-Type: application/json" \
   -H "Accept: application/json" \
@@ -302,7 +307,7 @@ Accept: application/json</code></pre>
             <!-- Complete Example -->
             <div class="space-y-2">
               <h4 class="font-semibold">Complete curl Example</h4>
-              <pre class="overflow-x-auto rounded-lg bg-muted p-4 block whitespace-pre"><code>curl -X POST {{ window.location.origin }}/api/otp/verify \
+              <pre class="overflow-x-auto rounded-lg bg-muted p-4 block whitespace-pre"><code>curl -X POST {{ baseUrl }}/api/otp/verify \
   -H "Authorization: Bearer 1|abc123def456..." \
   -H "Content-Type: application/json" \
   -H "Accept: application/json" \
