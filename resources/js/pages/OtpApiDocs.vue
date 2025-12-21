@@ -62,7 +62,7 @@ const downloadCollection = () => {
 
           <div class="space-y-2">
             <p class="text-sm font-medium">Temporary Token Generation (until UI is available):</p>
-            <pre class="overflow-x-auto rounded-lg bg-muted p-4"><code>// Via tinker
+            <pre class="overflow-x-auto rounded-lg bg-muted p-4 block whitespace-pre"><code>// Via tinker
 php artisan tinker
 $user = App\Models\User::where('email', 'your@email.com')->first();
 $token = $user->createToken('my-app-name')->plainTextToken;
@@ -71,7 +71,7 @@ echo $token;</code></pre>
 
           <div class="space-y-2">
             <p class="text-sm font-medium">Using the token in requests:</p>
-            <pre class="overflow-x-auto rounded-lg bg-muted p-4"><code>Authorization: Bearer YOUR_API_TOKEN_HERE</code></pre>
+            <pre class="overflow-x-auto rounded-lg bg-muted p-4 block whitespace-pre"><code>Authorization: Bearer YOUR_API_TOKEN_HERE</code></pre>
           </div>
         </CardContent>
       </Card>
@@ -82,7 +82,7 @@ echo $token;</code></pre>
           <CardTitle>Base URL</CardTitle>
         </CardHeader>
         <CardContent>
-          <pre class="overflow-x-auto rounded-lg bg-muted p-4"><code>{{ window.location.origin }}/api</code></pre>
+          <pre class="overflow-x-auto rounded-lg bg-muted p-4 block whitespace-pre"><code>{{ window.location.origin }}/api</code></pre>
         </CardContent>
       </Card>
 
@@ -122,7 +122,7 @@ echo $token;</code></pre>
 
           <div class="space-y-2">
             <h4 class="font-semibold">Complete Request Example</h4>
-            <pre class="overflow-x-auto rounded-lg bg-muted p-4"><code>curl -X POST {{ window.location.origin }}/api/otp/request \
+            <pre class="overflow-x-auto rounded-lg bg-muted p-4 block whitespace-pre"><code>curl -X POST {{ window.location.origin }}/api/otp/request \\
   -H "Authorization: Bearer 1|abcdef123456..." \
   -H "Content-Type: application/json" \
   -H "Accept: application/json" \
@@ -157,7 +157,7 @@ EOF</code></pre>
             <!-- Request Headers -->
             <div class="space-y-3">
               <h4 class="font-semibold">Request Headers</h4>
-              <pre class="overflow-x-auto rounded-lg bg-muted p-3 text-sm"><code>Authorization: Bearer YOUR_API_TOKEN
+              <pre class="overflow-x-auto rounded-lg bg-muted p-3 text-sm block whitespace-pre"><code>Authorization: Bearer YOUR_API_TOKEN
 Content-Type: application/json
 Accept: application/json</code></pre>
             </div>
@@ -165,7 +165,7 @@ Accept: application/json</code></pre>
             <!-- Request Body Shape -->
             <div class="space-y-3">
               <h4 class="font-semibold">Request Body Shape</h4>
-              <pre class="overflow-x-auto rounded-lg bg-muted p-3 text-sm"><code>{
+              <pre class="overflow-x-auto rounded-lg bg-muted p-3 text-sm block whitespace-pre"><code>{
   "mobile": string,          // required - E.164 format
   "purpose": string,         // optional - "login" | "password_reset" | "verification"
   "external_ref": string,    // optional - Your reference ID
@@ -203,7 +203,7 @@ Accept: application/json</code></pre>
             <!-- Complete Example -->
             <div class="space-y-2">
               <h4 class="font-semibold">Complete curl Example</h4>
-              <pre class="overflow-x-auto rounded-lg bg-muted p-4"><code>curl -X POST {{ window.location.origin }}/api/otp/request \
+              <pre class="overflow-x-auto rounded-lg bg-muted p-4 block whitespace-pre"><code>curl -X POST {{ window.location.origin }}/api/otp/request \\
   -H "Authorization: Bearer 1|abc123def456..." \
   -H "Content-Type: application/json" \
   -H "Accept: application/json" \
@@ -221,7 +221,7 @@ Accept: application/json</code></pre>
             <!-- Response Shape -->
             <div class="space-y-2">
               <h4 class="font-semibold">Response Body Shape</h4>
-              <pre class="overflow-x-auto rounded-lg bg-muted p-3 text-sm"><code>{
+              <pre class="overflow-x-auto rounded-lg bg-muted p-3 text-sm block whitespace-pre"><code>{
   "verification_id": string,  // UUID for verification session
   "expires_in": number,        // Seconds until expiration (300)
   "dev_code": string | null   // OTP code (local/testing only)
@@ -231,7 +231,7 @@ Accept: application/json</code></pre>
             <!-- Example Response -->
             <div class="space-y-2">
               <h4 class="font-semibold">Example Response (200 OK)</h4>
-              <pre class="overflow-x-auto rounded-lg bg-muted p-4"><code>{
+              <pre class="overflow-x-auto rounded-lg bg-muted p-4 block whitespace-pre"><code>{
   "verification_id": "019b4043-ea61-7287-9793-96512a5cfc18",
   "expires_in": 300,
   "dev_code": "123456"  // Only in local/testing environments
@@ -268,7 +268,7 @@ Accept: application/json</code></pre>
             <!-- Request Headers -->
             <div class="space-y-3">
               <h4 class="font-semibold">Request Headers</h4>
-              <pre class="overflow-x-auto rounded-lg bg-muted p-3 text-sm"><code>Authorization: Bearer YOUR_API_TOKEN
+              <pre class="overflow-x-auto rounded-lg bg-muted p-3 text-sm block whitespace-pre"><code>Authorization: Bearer YOUR_API_TOKEN
 Content-Type: application/json
 Accept: application/json</code></pre>
             </div>
@@ -276,7 +276,7 @@ Accept: application/json</code></pre>
             <!-- Request Body Shape -->
             <div class="space-y-3">
               <h4 class="font-semibold">Request Body Shape</h4>
-              <pre class="overflow-x-auto rounded-lg bg-muted p-3 text-sm"><code>{
+              <pre class="overflow-x-auto rounded-lg bg-muted p-3 text-sm block whitespace-pre"><code>{
   "verification_id": string,  // required - UUID from /otp/request
   "code": string              // required - 4-10 digit OTP code
 }</code></pre>
@@ -302,7 +302,7 @@ Accept: application/json</code></pre>
             <!-- Complete Example -->
             <div class="space-y-2">
               <h4 class="font-semibold">Complete curl Example</h4>
-              <pre class="overflow-x-auto rounded-lg bg-muted p-4"><code>curl -X POST {{ window.location.origin }}/api/otp/verify \
+              <pre class="overflow-x-auto rounded-lg bg-muted p-4 block whitespace-pre"><code>curl -X POST {{ window.location.origin }}/api/otp/verify \
   -H "Authorization: Bearer 1|abc123def456..." \
   -H "Content-Type: application/json" \
   -H "Accept: application/json" \
@@ -315,7 +315,7 @@ Accept: application/json</code></pre>
             <!-- Response Shape - Success -->
             <div class="space-y-2">
               <h4 class="font-semibold">Response Body Shape (Success)</h4>
-              <pre class="overflow-x-auto rounded-lg bg-muted p-3 text-sm"><code>{
+              <pre class="overflow-x-auto rounded-lg bg-muted p-3 text-sm block whitespace-pre"><code>{
   "ok": boolean,     // true for success
   "reason": string   // "verified"
 }</code></pre>
@@ -324,7 +324,7 @@ Accept: application/json</code></pre>
             <!-- Success Response -->
             <div class="space-y-2">
               <h4 class="font-semibold">Example Success Response (200 OK)</h4>
-              <pre class="overflow-x-auto rounded-lg bg-muted p-4"><code>{
+              <pre class="overflow-x-auto rounded-lg bg-muted p-4 block whitespace-pre"><code>{
   "ok": true,
   "reason": "verified"
 }</code></pre>
@@ -333,7 +333,7 @@ Accept: application/json</code></pre>
             <!-- Response Shape - Error -->
             <div class="space-y-2">
               <h4 class="font-semibold">Response Body Shape (Error)</h4>
-              <pre class="overflow-x-auto rounded-lg bg-muted p-3 text-sm"><code>{
+              <pre class="overflow-x-auto rounded-lg bg-muted p-3 text-sm block whitespace-pre"><code>{
   "ok": boolean,           // false for errors
   "reason": string,        // Error reason code
   "attempts": number,      // Current attempt count (optional)
@@ -344,7 +344,7 @@ Accept: application/json</code></pre>
             <!-- Error Response -->
             <div class="space-y-2">
               <h4 class="font-semibold">Error Response (200 OK)</h4>
-              <pre class="overflow-x-auto rounded-lg bg-muted p-4"><code>{
+              <pre class="overflow-x-auto rounded-lg bg-muted p-4 block whitespace-pre"><code>{
   "ok": false,
   "reason": "invalid_code",
   "attempts": 1,
