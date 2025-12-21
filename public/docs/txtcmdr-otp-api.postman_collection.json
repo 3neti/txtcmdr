@@ -1,0 +1,238 @@
+{
+	"info": {
+		"_postman_id": "otp-api-collection",
+		"name": "Text Commander - OTP API",
+		"description": "OTP (One-Time Password) verification API for Text Commander. This collection includes endpoints for requesting and verifying SMS-based OTP codes.\n\n## Authentication\n\nAll endpoints require a Bearer token (Sanctum API token). You can generate your API token from your Text Commander account settings.\n\n**Note**: A user-friendly API token management UI will be available in Personal Settings soon.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Request OTP",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"mobile\": \"+639171234567\",\n    \"purpose\": \"login\",\n    \"external_ref\": \"order-12345\",\n    \"meta\": {\n        \"user_id\": \"123\",\n        \"action\": \"password_reset\"\n    }\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/otp/request",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"otp",
+						"request"
+					]
+				},
+				"description": "Request a new OTP code to be sent via SMS.\n\n### Request Body\n\n- `mobile` (required): Phone number in E.164 format (e.g., +639171234567)\n- `purpose` (optional): Purpose of OTP. Options: `login`, `password_reset`, `verification`. Default: `login`\n- `external_ref` (optional): Your application's reference ID for tracking\n- `meta` (optional): Additional metadata as JSON object\n\n### Response\n\n- `verification_id`: UUID for this verification session\n- `expires_in`: Seconds until code expires (default: 300)\n- `dev_code`: OTP code (only in local/testing environments)\n\n### Notes\n\n- OTP will be sent to the mobile number via SMS using your configured sender ID\n- Codes are valid for 5 minutes by default\n- Maximum 5 verification attempts allowed"
+			},
+			"response": [
+				{
+					"name": "Success Response",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"mobile\": \"+639171234567\",\n    \"purpose\": \"login\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/otp/request",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"otp",
+								"request"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"verification_id\": \"019b4043-ea61-7287-9793-96512a5cfc18\",\n    \"expires_in\": 300,\n    \"dev_code\": \"123456\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Verify OTP",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"verification_id\": \"019b4043-ea61-7287-9793-96512a5cfc18\",\n    \"code\": \"123456\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/otp/verify",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"otp",
+						"verify"
+					]
+				},
+				"description": "Verify an OTP code.\n\n### Request Body\n\n- `verification_id` (required): UUID from the request response\n- `code` (required): OTP code received via SMS (4-10 digits)\n\n### Response\n\n- `ok`: Boolean indicating success/failure\n- `reason`: Result reason (see below)\n- `attempts`: Current attempt count (on failure)\n- `status`: Verification status (on failure)\n\n### Possible Reasons\n\n**Success:**\n- `verified`: Code is correct\n\n**Failure:**\n- `not_found`: Invalid verification_id\n- `expired`: Code has expired\n- `locked`: Too many failed attempts\n- `invalid_code`: Wrong code\n- `already_verified`: Code already used\n\n### Notes\n\n- Codes can only be verified once\n- After 5 failed attempts, verification is locked\n- Failed attempts increment the counter"
+			},
+			"response": [
+				{
+					"name": "Success Response",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"verification_id\": \"019b4043-ea61-7287-9793-96512a5cfc18\",\n    \"code\": \"123456\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/otp/verify",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"otp",
+								"verify"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"ok\": true,\n    \"reason\": \"verified\"\n}"
+				},
+				{
+					"name": "Invalid Code",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"verification_id\": \"019b4043-ea61-7287-9793-96512a5cfc18\",\n    \"code\": \"999999\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/otp/verify",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"otp",
+								"verify"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"ok\": false,\n    \"reason\": \"invalid_code\",\n    \"attempts\": 1,\n    \"status\": \"pending\"\n}"
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{api_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000",
+			"type": "string"
+		},
+		{
+			"key": "api_token",
+			"value": "YOUR_API_TOKEN_HERE",
+			"type": "string"
+		}
+	]
+}

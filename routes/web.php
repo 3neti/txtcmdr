@@ -13,6 +13,10 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
+Route::get('otp-api-docs', function () {
+    return Inertia::render('OtpApiDocs');
+})->middleware(['auth', 'verified'])->name('otp.api.docs');
+
 Route::get('dashboard', function () {
     $user = auth()->user();
 
