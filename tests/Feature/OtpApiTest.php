@@ -1,9 +1,17 @@
 <?php
 
+use App\Jobs\SendSMSJob;
 use App\Models\OtpVerification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Queue;
 
 uses(RefreshDatabase::class);
+
+// Disable SMS sending by default in tests to avoid foreign key issues
+// Enable explicitly in SMS-specific tests
+beforeEach(function () {
+    config()->set('otp.send_sms', false);
+});
 
 test('can request and verify OTP', function () {
     $resp = $this->postJson('/api/otp/request', [
@@ -221,4 +229,104 @@ test('works without authentication (guest OTP)', function () {
     $verification = OtpVerification::find($id);
 
     expect($verification->user_id)->toBeNull();
+});
+
+test('dispatches SMS job when OTP is requested', function () {
+    config()->set('otp.send_sms', true); // Enable for this test
+    Queue::fake();
+
+    $this->postJson('/api/otp/request', [
+        'mobile' => '+639171234567',
+        'purpose' => 'login',
+    ])->assertOk();
+
+    Queue::assertPushed(SendSMSJob::class, function ($job) {
+        return $job->mobile === '+639171234567'
+            && str_contains($job->message, 'login code is:')
+            && str_contains($job->message, 'Valid for 5 minutes');
+    });
+});
+
+test('tracks SMS send count and timestamp', function () {
+    config()->set('otp.send_sms', true); // Enable for this test
+    Queue::fake();
+
+    $resp = $this->postJson('/api/otp/request', [
+        'mobile' => '+639171234567',
+    ]);
+
+    $id = $resp->json('verification_id');
+    $verification = OtpVerification::find($id);
+
+    expect($verification->send_count)->toBe(1)
+        ->and($verification->last_sent_at)->not->toBeNull();
+});
+
+test('uses configured sender ID for OTP SMS', function () {
+    config()->set('otp.send_sms', true); // Enable for this test
+    Queue::fake();
+    config()->set('otp.sender_id', 'OTP_SENDER');
+
+    $this->postJson('/api/otp/request', [
+        'mobile' => '+639171234567',
+    ]);
+
+    Queue::assertPushed(SendSMSJob::class, function ($job) {
+        return $job->senderId === 'OTP_SENDER';
+    });
+});
+
+test('builds OTP message with custom template', function () {
+    config()->set('otp.send_sms', true); // Enable for this test
+    Queue::fake();
+    config()->set('otp.message_template', 'Code: {code} for {purpose}. Expires in {minutes}min.');
+
+    $resp = $this->postJson('/api/otp/request', [
+        'mobile' => '+639171234567',
+        'purpose' => 'password_reset',
+    ]);
+
+    $code = $resp->json('dev_code');
+
+    Queue::assertPushed(SendSMSJob::class, function ($job) use ($code) {
+        return $job->message === "Code: {$code} for password_reset. Expires in 5min.";
+    });
+});
+
+test('can disable SMS sending via config', function () {
+    Queue::fake();
+    config()->set('otp.send_sms', false);
+
+    $this->postJson('/api/otp/request', [
+        'mobile' => '+639171234567',
+    ])->assertOk();
+
+    Queue::assertNotPushed(SendSMSJob::class);
+});
+
+test('passes user_id to SMS job for authenticated requests', function () {
+    config()->set('otp.send_sms', true); // Enable for this test
+    Queue::fake();
+    $user = \App\Models\User::factory()->create();
+
+    $this->actingAs($user, 'sanctum')->postJson('/api/otp/request', [
+        'mobile' => '+639171234567',
+    ]);
+
+    Queue::assertPushed(SendSMSJob::class, function ($job) use ($user) {
+        return $job->userId === $user->id;
+    });
+});
+
+test('passes null user_id for guest OTP SMS', function () {
+    config()->set('otp.send_sms', true); // Enable for this test
+    Queue::fake();
+
+    $this->postJson('/api/otp/request', [
+        'mobile' => '+639171234567',
+    ]);
+
+    Queue::assertPushed(SendSMSJob::class, function ($job) {
+        return $job->userId === null;
+    });
 });

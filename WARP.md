@@ -697,8 +697,10 @@ POST   /message-logs/{id}/retry → Retry failed message
 - TTL expiration (default: 5 minutes)
 - Attempt limits with automatic locking (default: 5 attempts)
 - One-time use enforcement
+- **SMS delivery**: Automatic SMS dispatch via SendSMSJob
 - Guest and authenticated user support
 - Multi-tenant isolation
+- Send tracking (send_count, last_sent_at)
 
 ### API Endpoints
 
@@ -758,18 +760,31 @@ Response:
 'pepper' => env('OTP_PEPPER', env('APP_KEY'))  // HMAC secret
 ```
 
-**Environment Variable:**
+**Environment Variables:**
 ```bash
 OTP_PEPPER=                # Optional, defaults to APP_KEY
+OTP_SEND_SMS=true          # Enable/disable SMS sending (default: true)
+OTP_SENDER_ID=TXTCMDR      # Sender ID for OTP messages
 ```
 
 ### Implementation Details
 
 **Service: `App\Services\Otp\OtpService`**
-- `requestOtp()`: Generate OTP, hash with pepper, create verification record
+- `requestOtp()`: Generate OTP, hash with pepper, create verification record, dispatch SMS
 - `verifyOtp()`: Validate code using constant-time comparison, handle state transitions
 - `generateCode()`: Cryptographically secure random numeric code
 - `hashCode()`: HMAC-SHA256 hashing with application pepper
+- `sendOtpSms()`: Dispatch SendSMSJob with configurable message template
+- `buildOtpMessage()`: Build SMS message from template with variable substitution
+
+**SMS Integration:**
+- OTP codes automatically sent via SMS when `OTP_SEND_SMS=true`
+- Uses existing `SendSMSJob` infrastructure with queue support
+- Message template: `'Your {purpose} code is: {code}. Valid for {minutes} minutes. Do not share this code.'`
+- Template variables: `{code}`, `{purpose}`, `{minutes}`, `{app_name}`
+- Respects user SMS credentials (via `SmsConfigService`) for authenticated requests
+- Falls back to app-wide SMS config for guest OTP
+- Tracks send count and timestamp for each OTP request
 
 **Model: `App\Models\OtpVerification`**
 - Uses `HasUuids` trait for non-sequential IDs
@@ -793,12 +808,12 @@ OTP_PEPPER=                # Optional, defaults to APP_KEY
 
 ### Future Extensions (Not Implemented)
 
-- SMS integration via `SendSMSJob` (Phase 2)
 - Resend OTP endpoint with additional rate limiting
 - Multi-app support via `otp_app_id` column
 - TOTP/HOTP as alternative verification channels
 - Cleanup job for expired verifications
 - Admin dashboard for OTP analytics
+- Make message_logs.user_id nullable to support guest OTP SMS logging
 
 ### Testing
 
@@ -816,3 +831,8 @@ OTP_PEPPER=                # Optional, defaults to APP_KEY
 - Validation errors (missing fields, invalid UUID, code length)
 - Guest vs authenticated user support
 - Dev code visibility in different environments
+- SMS job dispatch and message content verification
+- Send count and timestamp tracking
+- Configurable sender ID and message templates
+- SMS sending can be disabled via configuration
+- User context passing for authenticated vs guest requests

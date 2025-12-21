@@ -2,7 +2,10 @@
 
 namespace App\Services\Otp;
 
+use App\Jobs\SendSMSJob;
 use App\Models\OtpVerification;
+use App\Models\User;
+use App\Services\SmsConfigService;
 use Illuminate\Support\Str;
 
 class OtpService
@@ -40,6 +43,11 @@ class OtpService
             'external_ref' => $externalRef,
             'meta' => $meta,
         ]);
+
+        // Send OTP via SMS if enabled
+        if (config('otp.send_sms', true)) {
+            $this->sendOtpSms($verification, $code, $ttl, $userId);
+        }
 
         return [
             'verification' => $verification,
@@ -116,5 +124,49 @@ class OtpService
     private function hashCode(string $code): string
     {
         return hash_hmac('sha256', $code, config('otp.pepper'));
+    }
+
+    /**
+     * Send OTP code via SMS
+     */
+    private function sendOtpSms(
+        OtpVerification $verification,
+        string $code,
+        int $ttl,
+        ?int $userId
+    ): void {
+        $message = $this->buildOtpMessage($code, $verification->purpose, $ttl);
+        $senderId = config('otp.sender_id', config('sms.default_sender_id', 'TXTCMDR'));
+
+        // Dispatch SMS job
+        SendSMSJob::dispatch(
+            $verification->mobile_e164,
+            $message,
+            $senderId,
+            null, // No scheduled_message_id for OTP
+            $userId
+        );
+
+        // Update send tracking
+        $verification->update([
+            'send_count' => $verification->send_count + 1,
+            'last_sent_at' => now(),
+        ]);
+    }
+
+    /**
+     * Build OTP SMS message from template
+     */
+    private function buildOtpMessage(string $code, string $purpose, int $ttl): string
+    {
+        $template = config('otp.message_template', 'Your {purpose} code is: {code}. Valid for {minutes} minutes.');
+        $minutes = ceil($ttl / 60);
+        $appName = config('app.name', 'Text Commander');
+
+        return str_replace(
+            ['{code}', '{purpose}', '{minutes}', '{app_name}'],
+            [$code, $purpose, $minutes, $appName],
+            $template
+        );
     }
 }
