@@ -86,6 +86,56 @@ echo $token;</code></pre>
         </CardContent>
       </Card>
 
+      <!-- Request Format -->
+      <Card>
+        <CardHeader>
+          <CardTitle>Request Format</CardTitle>
+          <CardDescription>All requests must include these headers</CardDescription>
+        </CardHeader>
+        <CardContent class="space-y-4">
+          <div class="space-y-3">
+            <h4 class="font-semibold">Required Headers</h4>
+            <div class="space-y-2">
+              <div class="flex items-start gap-3">
+                <code class="text-sm font-medium">Authorization:</code>
+                <div class="flex-1 space-y-1">
+                  <code class="text-sm text-muted-foreground">Bearer YOUR_API_TOKEN</code>
+                  <p class="text-xs text-muted-foreground">Your Sanctum API token for authentication</p>
+                </div>
+              </div>
+              <div class="flex items-start gap-3">
+                <code class="text-sm font-medium">Content-Type:</code>
+                <div class="flex-1 space-y-1">
+                  <code class="text-sm text-muted-foreground">application/json</code>
+                  <p class="text-xs text-muted-foreground">Request body must be JSON</p>
+                </div>
+              </div>
+              <div class="flex items-start gap-3">
+                <code class="text-sm font-medium">Accept:</code>
+                <div class="flex-1 space-y-1">
+                  <code class="text-sm text-muted-foreground">application/json</code>
+                  <p class="text-xs text-muted-foreground">Response will be JSON</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <h4 class="font-semibold">Complete Request Example</h4>
+            <pre class="overflow-x-auto rounded-lg bg-muted p-4"><code>curl -X POST {{ window.location.origin }}/api/otp/request \
+  -H "Authorization: Bearer 1|abcdef123456..." \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -d @- &lt;&lt;EOF
+{
+  "mobile": "+639171234567",
+  "purpose": "login"
+}
+EOF</code></pre>
+          </div>
+        </CardContent>
+      </Card>
+
       <!-- Endpoints -->
       <div class="space-y-6">
         <h2 class="text-2xl font-semibold">Endpoints</h2>
@@ -104,9 +154,28 @@ echo $token;</code></pre>
             </div>
           </CardHeader>
           <CardContent class="space-y-6">
+            <!-- Request Headers -->
+            <div class="space-y-3">
+              <h4 class="font-semibold">Request Headers</h4>
+              <pre class="overflow-x-auto rounded-lg bg-muted p-3 text-sm"><code>Authorization: Bearer YOUR_API_TOKEN
+Content-Type: application/json
+Accept: application/json</code></pre>
+            </div>
+
+            <!-- Request Body Shape -->
+            <div class="space-y-3">
+              <h4 class="font-semibold">Request Body Shape</h4>
+              <pre class="overflow-x-auto rounded-lg bg-muted p-3 text-sm"><code>{
+  "mobile": string,          // required - E.164 format
+  "purpose": string,         // optional - "login" | "password_reset" | "verification"
+  "external_ref": string,    // optional - Your reference ID
+  "meta": object             // optional - Additional data
+}</code></pre>
+            </div>
+
             <!-- Request Parameters -->
             <div class="space-y-3">
-              <h4 class="font-semibold">Request Body</h4>
+              <h4 class="font-semibold">Request Body Parameters</h4>
               <div class="space-y-2">
                 <div class="flex gap-2">
                   <code class="text-sm">mobile</code>
@@ -131,18 +200,32 @@ echo $token;</code></pre>
               </div>
             </div>
 
-            <!-- Example Request -->
+            <!-- Complete Example -->
             <div class="space-y-2">
-              <h4 class="font-semibold">Example Request</h4>
+              <h4 class="font-semibold">Complete curl Example</h4>
               <pre class="overflow-x-auto rounded-lg bg-muted p-4"><code>curl -X POST {{ window.location.origin }}/api/otp/request \
-  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Authorization: Bearer 1|abc123def456..." \
   -H "Content-Type: application/json" \
   -H "Accept: application/json" \
   -d '{
     "mobile": "+639171234567",
     "purpose": "login",
-    "external_ref": "order-12345"
+    "external_ref": "user-login-2024-001",
+    "meta": {
+      "user_id": "12345",
+      "ip_address": "192.168.1.1"
+    }
   }'</code></pre>
+            </div>
+
+            <!-- Response Shape -->
+            <div class="space-y-2">
+              <h4 class="font-semibold">Response Body Shape</h4>
+              <pre class="overflow-x-auto rounded-lg bg-muted p-3 text-sm"><code>{
+  "verification_id": string,  // UUID for verification session
+  "expires_in": number,        // Seconds until expiration (300)
+  "dev_code": string | null   // OTP code (local/testing only)
+}</code></pre>
             </div>
 
             <!-- Example Response -->
@@ -182,9 +265,26 @@ echo $token;</code></pre>
             </div>
           </CardHeader>
           <CardContent class="space-y-6">
+            <!-- Request Headers -->
+            <div class="space-y-3">
+              <h4 class="font-semibold">Request Headers</h4>
+              <pre class="overflow-x-auto rounded-lg bg-muted p-3 text-sm"><code>Authorization: Bearer YOUR_API_TOKEN
+Content-Type: application/json
+Accept: application/json</code></pre>
+            </div>
+
+            <!-- Request Body Shape -->
+            <div class="space-y-3">
+              <h4 class="font-semibold">Request Body Shape</h4>
+              <pre class="overflow-x-auto rounded-lg bg-muted p-3 text-sm"><code>{
+  "verification_id": string,  // required - UUID from /otp/request
+  "code": string              // required - 4-10 digit OTP code
+}</code></pre>
+            </div>
+
             <!-- Request Parameters -->
             <div class="space-y-3">
-              <h4 class="font-semibold">Request Body</h4>
+              <h4 class="font-semibold">Request Body Parameters</h4>
               <div class="space-y-2">
                 <div class="flex gap-2">
                   <code class="text-sm">verification_id</code>
@@ -199,11 +299,11 @@ echo $token;</code></pre>
               </div>
             </div>
 
-            <!-- Example Request -->
+            <!-- Complete Example -->
             <div class="space-y-2">
-              <h4 class="font-semibold">Example Request</h4>
+              <h4 class="font-semibold">Complete curl Example</h4>
               <pre class="overflow-x-auto rounded-lg bg-muted p-4"><code>curl -X POST {{ window.location.origin }}/api/otp/verify \
-  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Authorization: Bearer 1|abc123def456..." \
   -H "Content-Type: application/json" \
   -H "Accept: application/json" \
   -d '{
@@ -212,12 +312,32 @@ echo $token;</code></pre>
   }'</code></pre>
             </div>
 
+            <!-- Response Shape - Success -->
+            <div class="space-y-2">
+              <h4 class="font-semibold">Response Body Shape (Success)</h4>
+              <pre class="overflow-x-auto rounded-lg bg-muted p-3 text-sm"><code>{
+  "ok": boolean,     // true for success
+  "reason": string   // "verified"
+}</code></pre>
+            </div>
+
             <!-- Success Response -->
             <div class="space-y-2">
-              <h4 class="font-semibold">Success Response (200 OK)</h4>
+              <h4 class="font-semibold">Example Success Response (200 OK)</h4>
               <pre class="overflow-x-auto rounded-lg bg-muted p-4"><code>{
   "ok": true,
   "reason": "verified"
+}</code></pre>
+            </div>
+
+            <!-- Response Shape - Error -->
+            <div class="space-y-2">
+              <h4 class="font-semibold">Response Body Shape (Error)</h4>
+              <pre class="overflow-x-auto rounded-lg bg-muted p-3 text-sm"><code>{
+  "ok": boolean,           // false for errors
+  "reason": string,        // Error reason code
+  "attempts": number,      // Current attempt count (optional)
+  "status": string         // Verification status (optional)
 }</code></pre>
             </div>
 
