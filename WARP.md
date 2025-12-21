@@ -686,3 +686,133 @@ POST   /message-logs/{id}/retry → Retry failed message
 - Backend routes automatically generate TypeScript helpers via Wayfinder
 - After adding/modifying routes, Vite will regenerate route files
 - Use generated actions for type-safe routing: `import { login } from '@/actions/Laravel/Fortify'`
+
+## OTP Module
+
+**Text Commander** includes an SMS-based One-Time Password (OTP) verification system for API authentication and verification flows.
+
+### Features
+- Server-generated random numeric codes (default: 6 digits)
+- Secure hash-only storage (HMAC-SHA256 with pepper)
+- TTL expiration (default: 5 minutes)
+- Attempt limits with automatic locking (default: 5 attempts)
+- One-time use enforcement
+- Guest and authenticated user support
+- Multi-tenant isolation
+
+### API Endpoints
+
+```bash
+# Request OTP (Public, throttled at 30/min)
+POST /api/otp/request
+{
+    "mobile": "+639171234567",
+    "purpose": "login",           # Optional: login|password_reset|verification
+    "external_ref": "REF123",    # Optional: client reference
+    "meta": {"key": "value"}    # Optional: additional data
+}
+
+Response:
+{
+    "verification_id": "uuid",
+    "expires_in": 300,
+    "dev_code": "123456"          # Only in local/testing environments
+}
+
+# Verify OTP (Public, throttled at 30/min)
+POST /api/otp/verify
+{
+    "verification_id": "uuid",
+    "code": "123456"
+}
+
+Response:
+{
+    "ok": true,
+    "reason": "verified"          # or: not_found|expired|locked|invalid_code|already_verified
+}
+```
+
+### Database Schema
+
+**Table: `otp_verifications`**
+- `id` (UUID primary key)
+- `user_id` (nullable, for authenticated requests)
+- `mobile_e164` (E.164 phone format)
+- `purpose` (login|password_reset|verification)
+- `code_hash` (SHA-256, never stores plaintext)
+- `expires_at` (TTL enforcement)
+- `status` (pending|verified|expired|locked)
+- `attempts` / `max_attempts` (rate limiting)
+- `verified_at` (audit trail)
+- `request_ip` / `user_agent` (security logging)
+- `external_ref` / `meta` (flexible client data)
+
+### Configuration
+
+**File: `config/otp.php`**
+```php
+'digits' => 6,              // OTP code length
+'ttl_seconds' => 300,       // 5 minutes expiration
+'max_attempts' => 5,        // Lock after 5 wrong attempts
+'pepper' => env('OTP_PEPPER', env('APP_KEY'))  // HMAC secret
+```
+
+**Environment Variable:**
+```bash
+OTP_PEPPER=                # Optional, defaults to APP_KEY
+```
+
+### Implementation Details
+
+**Service: `App\Services\Otp\OtpService`**
+- `requestOtp()`: Generate OTP, hash with pepper, create verification record
+- `verifyOtp()`: Validate code using constant-time comparison, handle state transitions
+- `generateCode()`: Cryptographically secure random numeric code
+- `hashCode()`: HMAC-SHA256 hashing with application pepper
+
+**Model: `App\Models\OtpVerification`**
+- Uses `HasUuids` trait for non-sequential IDs
+- Helper methods: `isExpired()`, `isTerminal()`
+- No direct user relationship (nullable user_id supports guest OTP)
+
+**Controller: `App\Http\Controllers\Api\OtpController`**
+- Public endpoints (no auth:sanctum required)
+- Captures request IP and user agent for security
+- Dev code visible only in local/testing environments
+
+### Security Considerations
+
+1. **No Plaintext Storage**: Codes hashed with HMAC-SHA256 before database storage
+2. **Timing-Attack Protection**: `hash_equals()` for constant-time comparison
+3. **UUID Primary Keys**: Prevents verification ID enumeration attacks
+4. **Rate Limiting**: API throttled at 30 requests/minute + per-OTP attempt limits
+5. **TTL Enforcement**: Automatic expiration after configured seconds
+6. **One-Time Use**: Status transitions prevent code reuse
+7. **Audit Trail**: IP address, user agent, timestamps logged for investigation
+
+### Future Extensions (Not Implemented)
+
+- SMS integration via `SendSMSJob` (Phase 2)
+- Resend OTP endpoint with additional rate limiting
+- Multi-app support via `otp_app_id` column
+- TOTP/HOTP as alternative verification channels
+- Cleanup job for expired verifications
+- Admin dashboard for OTP analytics
+
+### Testing
+
+```bash
+# Run OTP tests
+./vendor/bin/pest tests/Feature/OtpApiTest.php
+```
+
+**Test Coverage:**
+- Success flow: request → verify with correct code
+- Invalid code handling with attempt increments
+- Automatic locking after max attempts
+- TTL expiration enforcement
+- Duplicate verification prevention
+- Validation errors (missing fields, invalid UUID, code length)
+- Guest vs authenticated user support
+- Dev code visibility in different environments
