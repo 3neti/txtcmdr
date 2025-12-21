@@ -13,14 +13,14 @@ const downloadCollection = () => {
 
 <template>
   <AppLayout>
-    <Head title="OTP API Documentation" />
+    <Head title="OTP Module API Documentation" />
 
     <div class="mx-auto max-w-5xl space-y-8 py-8">
       <!-- Header -->
       <div class="space-y-4">
         <div class="flex items-center justify-between">
           <div>
-            <h1 class="text-3xl font-bold">OTP API Documentation</h1>
+            <h1 class="text-3xl font-bold">OTP Module API Documentation</h1>
             <p class="mt-2 text-muted-foreground">
               SMS-based One-Time Password verification for your applications
             </p>
