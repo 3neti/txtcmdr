@@ -25,8 +25,9 @@ test('OTP verify requires authentication', function () {
 
 test('authenticated user can request OTP', function () {
     $user = User::factory()->create();
+    $token = $user->createToken('test', ['otp:request'])->plainTextToken;
 
-    $resp = $this->actingAs($user, 'sanctum')->postJson('/api/otp/request', [
+    $resp = $this->withToken($token)->postJson('/api/otp/request', [
         'mobile' => '+639171234567',
     ])->assertOk();
 
@@ -37,15 +38,16 @@ test('authenticated user can request OTP', function () {
 
 test('authenticated user can verify OTP', function () {
     $user = User::factory()->create();
+    $token = $user->createToken('test', ['otp:request', 'otp:verify'])->plainTextToken;
 
-    $resp = $this->actingAs($user, 'sanctum')->postJson('/api/otp/request', [
+    $resp = $this->withToken($token)->postJson('/api/otp/request', [
         'mobile' => '+639171234567',
     ]);
 
     $id = $resp->json('verification_id');
     $code = $resp->json('dev_code');
 
-    $this->actingAs($user, 'sanctum')->postJson('/api/otp/verify', [
+    $this->withToken($token)->postJson('/api/otp/verify', [
         'verification_id' => $id,
         'code' => $code,
     ])->assertOk()
@@ -54,8 +56,9 @@ test('authenticated user can verify OTP', function () {
 
 test('OTP request associates user_id correctly', function () {
     $user = User::factory()->create();
+    $token = $user->createToken('test', ['otp:request'])->plainTextToken;
 
-    $resp = $this->actingAs($user, 'sanctum')->postJson('/api/otp/request', [
+    $resp = $this->withToken($token)->postJson('/api/otp/request', [
         'mobile' => '+639171234567',
     ]);
 
@@ -69,11 +72,13 @@ test('different users can request OTP for same mobile', function () {
     $user1 = User::factory()->create();
     $user2 = User::factory()->create();
 
-    $resp1 = $this->actingAs($user1, 'sanctum')->postJson('/api/otp/request', [
+    \Laravel\Sanctum\Sanctum::actingAs($user1, ['otp:request']);
+    $resp1 = $this->postJson('/api/otp/request', [
         'mobile' => '+639171234567',
     ])->assertOk();
 
-    $resp2 = $this->actingAs($user2, 'sanctum')->postJson('/api/otp/request', [
+    \Laravel\Sanctum\Sanctum::actingAs($user2, ['otp:request']);
+    $resp2 = $this->postJson('/api/otp/request', [
         'mobile' => '+639171234567',
     ])->assertOk();
 
@@ -90,6 +95,7 @@ test('different users can request OTP for same mobile', function () {
 
 test('uses user SMS credentials when available', function () {
     $user = User::factory()->create();
+    $token = $user->createToken('test', ['otp:request'])->plainTextToken;
     
     // Create user SMS config
     UserSmsConfig::create([
@@ -107,7 +113,7 @@ test('uses user SMS credentials when available', function () {
     config()->set('otp.send_sms', true);
     \Illuminate\Support\Facades\Queue::fake();
 
-    $this->actingAs($user, 'sanctum')->postJson('/api/otp/request', [
+    $this->withToken($token)->postJson('/api/otp/request', [
         'mobile' => '+639171234567',
     ]);
 
@@ -119,10 +125,11 @@ test('uses user SMS credentials when available', function () {
 
 test('rate limiting applies to OTP endpoints', function () {
     $user = User::factory()->create();
+    $token = $user->createToken('test', ['otp:request'])->plainTextToken;
     
     // Make 31 requests (exceeds 30/min limit)
     for ($i = 0; $i < 31; $i++) {
-        $response = $this->actingAs($user, 'sanctum')->postJson('/api/otp/request', [
+        $response = $this->withToken($token)->postJson('/api/otp/request', [
             'mobile' => '+639171234567',
         ]);
     }
@@ -158,7 +165,8 @@ test('user can verify OTP from another user request', function () {
     $user2 = User::factory()->create();
 
     // User1 requests OTP
-    $resp = $this->actingAs($user1, 'sanctum')->postJson('/api/otp/request', [
+    \Laravel\Sanctum\Sanctum::actingAs($user1, ['otp:request']);
+    $resp = $this->postJson('/api/otp/request', [
         'mobile' => '+639171234567',
     ]);
 
@@ -166,7 +174,8 @@ test('user can verify OTP from another user request', function () {
     $code = $resp->json('dev_code');
 
     // User2 tries to verify (should work - no user isolation on verification)
-    $this->actingAs($user2, 'sanctum')->postJson('/api/otp/verify', [
+    \Laravel\Sanctum\Sanctum::actingAs($user2, ['otp:verify']);
+    $this->postJson('/api/otp/verify', [
         'verification_id' => $id,
         'code' => $code,
     ])->assertOk()
@@ -178,8 +187,9 @@ test('OTP request captures user context in metadata', function () {
         'name' => 'Test User',
         'email' => 'test@example.com',
     ]);
+    $token = $user->createToken('test', ['otp:request'])->plainTextToken;
 
-    $resp = $this->actingAs($user, 'sanctum')->postJson('/api/otp/request', [
+    $resp = $this->withToken($token)->postJson('/api/otp/request', [
         'mobile' => '+639171234567',
         'purpose' => 'login',
         'external_ref' => 'app-login-123',

@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { ExternalLink } from 'lucide-vue-next'
 import {edit} from '@/routes/otp-config'
 import { type BreadcrumbItem } from '@/types'
 
@@ -38,10 +39,16 @@ const breadcrumbItems: BreadcrumbItem[] = [
 
     <SettingsLayout>
       <div class="flex flex-col space-y-6">
-        <HeadingSmall
-          title="OTP Configuration"
-          description="Configure One-Time Password settings for API authentication"
-        />
+        <div class="flex items-center justify-between">
+          <HeadingSmall
+            title="OTP Configuration"
+            description="Configure One-Time Password settings for API authentication"
+          />
+          <Button as="a" href="/otp-api-docs" target="_blank" variant="outline" size="sm">
+            <ExternalLink class="h-4 w-4 mr-2" />
+            API Documentation
+          </Button>
+        </div>
 
         <form @submit.prevent="$inertia.put(edit().url, {
           digits: $event.target.digits.value,

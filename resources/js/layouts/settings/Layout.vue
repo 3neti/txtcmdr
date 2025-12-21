@@ -6,6 +6,7 @@ import { toUrl, urlIsActive } from '@/lib/utils';
 import { edit as editAppearance } from '@/routes/appearance';
 import { edit as editOtpConfig } from '@/routes/otp-config';
 import { edit as editProfile } from '@/routes/profile';
+import { index as apiTokensIndex } from '@/routes/settings/api-tokens';
 import { edit as editSmsConfig } from '@/routes/sms-config';
 import { show } from '@/routes/two-factor';
 import { edit as editPassword } from '@/routes/user-password';
@@ -24,6 +25,10 @@ const sidebarNavItems: NavItem[] = [
     {
         title: 'Two-Factor Auth',
         href: show(),
+    },
+    {
+        title: 'API Tokens',
+        href: apiTokensIndex(),
     },
     {
         title: 'SMS',
