@@ -117,6 +117,22 @@ php artisan sms:test "+639173011987" "Test" --sender="cashless"
 php artisan messages:process-scheduled
 ```
 
+### OTP Commands
+```bash
+# Test OTP generation and verification (interactive)
+php artisan otp:test
+
+# Test with mobile number provided
+php artisan otp:test "+639173011987"
+
+# The command will:
+# 1. Send OTP code via SMS to the mobile number
+# 2. Display the code in local/testing environments
+# 3. Prompt for code entry
+# 4. Verify the entered code
+# 5. Display success/failure result
+```
+
 ### Task Scheduler
 
 **Development:**
