@@ -1,0 +1,357 @@
+{
+  "info": {
+    "name": "Text Commander - EngageSPARK API",
+    "_postman_id": "txtcmdr-engagespark-v1",
+    "description": "EngageSPARK API testing collection for Text Commander SMS broadcasting.\n\n## Setup Instructions\n1. Import the environment file: txtcmdr-engagespark.postman_environment.json\n2. Set your credentials in the environment:\n   - api_key: Your EngageSPARK API key\n   - org_id: Your organization ID\n   - sender_id: Default sender ID (e.g., TXTCMDR)\n3. Update test_mobile_1 and test_mobile_2 with your test numbers\n\n## API Documentation\n- Base URL: https://api.engagespark.com\n- Authentication: Token-based (Token header)\n- Format: JSON\n\n## Note\nPhone numbers must be in E.164 format WITHOUT the + sign (e.g., 639173011987)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://api.engagespark.com",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 - SMS Sending",
+      "item": [
+        {
+          "name": "Send SMS - Single Recipient",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status is 200 or 201\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has message ID\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.exist;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orgId\": \"{{org_id}}\",\n  \"to\": \"{{test_mobile_1}}\",\n  \"from\": \"{{sender_id}}\",\n  \"message\": \"Test message from EngageSPARK API via Postman\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/sms/contact",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "sms", "contact"]
+            },
+            "description": "Send an SMS to a single recipient.\n\n**Request Body:**\n- orgId (string, required): Your organization ID\n- to (string, required): Recipient phone number in E.164 format without + (e.g., \"639173011987\")\n- from (string, required): Sender ID / Sender name\n- message (string, required): SMS message content"
+          }
+        },
+        {
+          "name": "Send SMS - With Custom Sender",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status is 200 or 201\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orgId\": \"{{org_id}}\",\n  \"to\": \"{{test_mobile_1}}\",\n  \"from\": \"cashless\",\n  \"message\": \"This message uses a custom sender ID: cashless\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/sms/contact",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "sms", "contact"]
+            },
+            "description": "Send SMS with a different sender ID.\n\n**Available Sender IDs (from Text Commander):**\n- TXTCMDR\n- cashless\n- Quezon City\n\nThe sender ID must be registered with EngageSPARK."
+          }
+        },
+        {
+          "name": "Send SMS - Two Recipients",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status is 200 or 201\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orgId\": \"{{org_id}}\",\n  \"to\": \"{{test_mobile_2}}\",\n  \"from\": \"{{sender_id}}\",\n  \"message\": \"Hello from Text Commander! This is a test broadcast message.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/sms/contact",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "sms", "contact"]
+            },
+            "description": "Send SMS to the second test mobile number.\n\nNote: EngageSPARK sends one message at a time. For bulk sending, you need to make multiple API calls (which Text Commander handles via queued jobs)."
+          }
+        },
+        {
+          "name": "Send SMS - OTP Message",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status is 200 or 201\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orgId\": \"{{org_id}}\",\n  \"to\": \"{{test_mobile_1}}\",\n  \"from\": \"{{sender_id}}\",\n  \"message\": \"Your login code is: 123456. Valid for 5 minutes. Do not share this code.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/sms/contact",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "sms", "contact"]
+            },
+            "description": "Example of sending an OTP (One-Time Password) code via SMS.\n\nText Commander's OTP module uses this same endpoint format."
+          }
+        },
+        {
+          "name": "Send SMS - Long Message",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status is 200 or 201\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orgId\": \"{{org_id}}\",\n  \"to\": \"{{test_mobile_1}}\",\n  \"from\": \"Quezon City\",\n  \"message\": \"Your appointment is confirmed for tomorrow at 10:00 AM. Please bring a valid ID and arrive 15 minutes early. For inquiries, contact us at support@example.com or call 123-4567. Thank you!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/sms/contact",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "sms", "contact"]
+            },
+            "description": "Test sending a longer SMS message (>160 characters).\n\nNote: Messages over 160 characters are split into multiple SMS parts and charged accordingly."
+          }
+        }
+      ],
+      "description": "SMS sending endpoints for the EngageSPARK API"
+    },
+    {
+      "name": "02 - Airtime Topup",
+      "item": [
+        {
+          "name": "Transfer Airtime - 50 PHP",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status is 200 or 201\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orgId\": \"{{org_id}}\",\n  \"phoneNumber\": \"{{test_mobile_1}}\",\n  \"amount\": 50,\n  \"reference\": \"TOPUP-{{$randomAlphaNumeric}}{{$randomAlphaNumeric}}{{$randomAlphaNumeric}}{{$randomAlphaNumeric}}{{$randomAlphaNumeric}}{{$randomAlphaNumeric}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/airtime-topup",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "airtime-topup"]
+            },
+            "description": "Transfer mobile airtime credit to a phone number.\n\n**Request Body:**\n- orgId (string, required): Your organization ID\n- phoneNumber (string, required): Recipient phone number in E.164 format without +\n- amount (number, required): Amount in PHP (minimum: 15, maximum: 1000)\n- reference (string, required): Unique reference for this transaction\n\n**Configuration:**\n- Minimum topup: PHP 15\n- Maximum topup: PHP 1000"
+          }
+        },
+        {
+          "name": "Transfer Airtime - Minimum (15 PHP)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status is 200 or 201\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Token {{api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orgId\": \"{{org_id}}\",\n  \"phoneNumber\": \"{{test_mobile_1}}\",\n  \"amount\": 15,\n  \"reference\": \"MIN-TOPUP-{{$timestamp}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/airtime-topup",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "airtime-topup"]
+            },
+            "description": "Test airtime transfer with the minimum allowed amount (PHP 15)."
+          }
+        }
+      ],
+      "description": "Airtime topup/transfer endpoints for mobile credit distribution"
+    }
+  ]
+}
